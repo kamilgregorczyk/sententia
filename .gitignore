@@ -1,0 +1,15 @@
+*~
+*.pyc
+*.pyo
+.project
+.pydevproject
+.sass-cache/
+.idea/
+.settings/
+/media/
+/static/
+/logs/*
+/tmp/*
+/public/*
+/sententia/local.py
+/sententia/production.py

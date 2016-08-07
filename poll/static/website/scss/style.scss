@@ -1,0 +1,123 @@
+@import "../sass/material-kit/_colors.scss";
+
+footer, .main {
+  background: $purple;
+}
+
+body {
+  background: transparent;
+}
+
+#container {
+  padding-top: 5%;
+}
+
+h1 {
+  margin-top: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+%flex {
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+
+}
+
+.main-wrapper {
+  min-height: 100%;
+  @extend %flex;
+
+  flex-direction: column;
+  .wrapper {
+    flex-grow: 1;
+    background: $purple;
+  }
+}
+
+.navbar {
+  border-radius: 0;
+  margin: 0;
+  background: white !important;
+  a, li {
+    color: #555555 !important;
+  }
+  .navbar-brand {
+    color: $purple !important;
+  }
+
+}
+
+.inline {
+  li {
+    display: inline-block;
+  }
+}
+
+.errorlist {
+  padding: 0;
+  li {
+    color: #f44336;
+    &:before {
+      font-family: "FontAwesome";
+      content: "\f071";
+      color: #f44336;
+      margin-right: 5px;
+    }
+  }
+}
+
+label {
+  font-size: 18px;
+  color: #555555;
+}
+
+ul {
+  list-style: none;
+  padding-left: 15px;
+}
+
+.navbar-brand {
+  font-weight: 500;
+}
+
+.bg {
+  box-shadow: 0 12px 15px 0 rgba(0, 0, 0, .18), 0 17px 50px 0 rgba(0, 0, 0, .08);
+  background: white;
+  border-radius: 3px;
+  padding: 30px;
+}
+
+.bg-white {
+  background: white;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.white-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  &:hover, &:focus {
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+.form-group {
+  margin: 0 !important;
+}
+
+p {
+  font-size: 16px;
+  line-height: 23px;
+}
+
+.helptext {
+  display: block;
+}

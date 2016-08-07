@@ -1,0 +1,19 @@
+{% extends 'website/base.html' %}
+
+{% block body %}
+
+    <div class="row">
+        <div class="col-xs-12 bg z-depth-4">
+
+            <h2>{{ poll.title }}</h2>
+            <hr>
+            <p>{{ poll.description|safe }}</p>
+
+            <p class="text-center">
+                <a type="submit" class="btn btn-success btn-lg" href="{% if token %}{% url "poll_vote" poll_code=poll.code token=token %}{% else %}{% url "poll_vote" poll_code=poll.code %}{% endif %}">Zacznij wypełniać ankietę </a></p>
+        </div>
+    </div>
+    <script>
+
+    </script>
+{% endblock %}

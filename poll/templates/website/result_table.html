@@ -1,0 +1,27 @@
+{% load templatetags %}
+<table class="table table responsive table-bordered table-hover" style="width:100%;">
+    <thead>
+    <th>Data</th>
+
+    {% for question in questions %}
+        {% if question.type == "MultiScale" %}
+            {% for choice in question.choices.all %}
+                <th>{{ choice.title }}</th>
+            {% endfor %}
+        {% else %}
+            <th>{{ question.title }}</th>
+        {% endif %}
+    {% endfor %}
+    </thead>
+    <tbody>
+
+    {% for row in table %}
+        <tr>
+            {% for cell in row %}
+                <td>{{ cell }}</td>
+            {% endfor %}
+
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

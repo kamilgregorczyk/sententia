@@ -1,0 +1,80 @@
+{% load i18n nested_admin admin_urls %}
+{% with inline_admin_formset.formset.is_nested as is_nested %}
+    {% if not is_nested %}
+        <div class="text-right">
+            <button class="btn roll-all" data-roll="not-rolled"> Zwiń wszystkie</button>
+        </div>
+    {% endif %}
+    {% with inline_admin_formset.opts as inline_opts %}
+        <div class="inline-group group djn-group djn-stacked{% if is_nested %} djn-group-nested{% else %} djn-group-root{% endif %}"
+             id="{{ inline_admin_formset.formset.prefix }}-group"
+             data-inline-type="stacked"
+             data-inline-formset="{{ inline_admin_formset.inline_formset_data }}"
+             data-inline-model="{{ inline_admin_formset.inline_model_id }}">
+            {{ inline_admin_formset.formset.management_form }}
+            {{ inline_admin_formset.formset.non_form_errors }}
+
+            <div class="items djn-items">
+
+                {% with inline_admin_formset.opts.sortable_field_name|default:"" as sortable_field_name %}
+                    {% for inline_admin_form in inline_admin_formset|formsetsort:sortable_field_name %}
+                        {% if forloop.first %}
+                            <div class="djn-item djn-no-drag">
+                                <div></div>
+                            </div>
+
+                        {% endif %}
+                        {{ inline_admin_form.management_form }}
+                        <div class="{% if not forloop.last %}djn-item{% endif %} djn-module djn-inline-form {% if inline_admin_formset.opts.classes %} {{ inline_admin_formset.opts.classes|join:" " }}{% endif %}{% if inline_admin_form.original or inline_admin_form.show_url %} has_original{% endif %}{% if forloop.last %} djn-empty-form empty-form{% endif %} inline-related"
+                                {% if inline_admin_form.pk_field.field %}
+                             data-is-initial="{% if inline_admin_form.pk_field.field.value %}true{% else %}false{% endif %}"
+                                {% endif %}
+                             id="{{ inline_admin_formset.formset.prefix }}{% if forloop.last %}-empty{% else %}{{ inline_admin_form.form|form_index }}{% endif %}">
+
+                            <h3 class="{% if not inline_opts.sortable_options or not inline_opts.sortable_options.disabled %} djn-drag-handler{% endif %} {% if not is_nested %}djn-drag-handler-root{% endif %}">
+                            </h3>
+                            {% if not is_nested %}
+                                <h2>
+                                    {{ inline_admin_form.original }}
+                                    <span style="float:right" class="roll" data-roll="not-rolled"> ZWIŃ</span>
+                                </h2>
+                            {% endif %}
+
+                            {% if inline_admin_form.form.non_field_errors %}
+                                <ul class="errorlist">
+                                    <li>{{ inline_admin_form.form.non_field_errors }}</li>
+                                </ul>
+                            {% endif %}
+
+                            <div class="flex-center">
+                                {% for fieldset in inline_admin_form %}
+                                    {% include inline_admin_formset.opts.fieldset_template %}
+
+                                {% endfor %}
+
+                            </div>
+                            {% if inline_admin_form.has_auto_field or inline_admin_form.needs_explicit_pk_field %}
+                                {{ inline_admin_form.pk_field.field }}
+                            {% endif %}
+                            {{ inline_admin_form.fk_field.field }}
+                            {% if inline_admin_form.form.inlines %}
+                                {% for nested in inline_admin_form.form.inlines %}
+                                    {% include nested.opts.template with inline_admin_formset=nested %}
+                                {% endfor %}
+                            {% endif %}
+
+                        </div>
+                    {% endfor %}
+                {% endwith %}
+
+                {{ inline_admin_formset.extra_forms }}
+            </div>
+            <div class="djn-module djn-add-item add-item add-row">
+                <a href="javascript://" class="add-handler djn-add-handler {{ inline_admin_formset.handler_classes|join:" " }}">
+                    {% blocktrans with inline_admin_formset.opts.verbose_name|strip_parent_name:inline_opts.verbose_name|title as verbose_name %}Add another {{ verbose_name }}{% endblocktrans %}
+                </a>
+            </div>
+        </div>
+    {% endwith %}{# ends with inline_admin_formset.opts as inline_opts #}
+
+{% endwith %}{# ends {% with inline_admin_formset.formset.is_nested as is_nested %} #}

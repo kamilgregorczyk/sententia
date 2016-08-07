@@ -1,0 +1,43 @@
+{% extends 'website/base.html' %}
+
+{% block body %}
+
+    <div class="row">
+        <div class="col-xs-12 bg z-depth-4">
+
+            <h2>{{ poll.title }}</h2>
+            <hr>
+            {% if formset.errors %}
+                <div class="alert alert-danger">
+                    <div class="container-fluid">
+                        <h4 style="margin:0;">Wystąpiły błędy w ankiecie!</h4>
+                    </div>
+                </div>
+            {% endif %}
+
+
+            <form action="" method="POST">
+                {% csrf_token %}
+                {{ formset.management_form }}
+                {% for form in formset %}
+                    {{ form.as_p }}
+                    <hr>
+                {% endfor %}
+                <p class="text-center">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        Wyślij ankietę
+                    </button>
+                </p>
+            </form>
+        </div>
+    </div>
+    <script>
+        $(function () {
+            $(window).bind("pageshow", function () {
+                var form = $('form');
+                // let the browser natively reset defaults
+                form[0].reset();
+            });
+        })
+    </script>
+{% endblock %}

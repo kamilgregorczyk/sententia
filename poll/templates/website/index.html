@@ -1,0 +1,24 @@
+{% extends 'website/base.html' %}
+
+{% block body %}
+
+    <div class="row">
+        <div class="col-xs-12 bg z-depth-4">
+            <h2>Publiczne ankiety</h2>
+            <hr>
+            {% if polls %}
+                {% for poll in polls %}
+                    <h3>{{ poll.title }}</h3>
+                    <p>{{ poll.description|truncatewords:30 }}</p>
+                    <a href="{% url "poll" poll_code=poll.code %}" class="btn btn-success">Wypełnij ankietę</a>
+                    {% if not forloop.last %}
+                        <hr>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <h3>Brak ankiet publicznych</h3>
+            {% endif %}
+
+        </div>
+    </div>
+{% endblock %}
