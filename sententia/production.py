@@ -1,5 +1,7 @@
-from base import *
 import psycopg2
+
+from base import *
+
 SECRET_KEY = '6g@a7pu2g)+cg5@d8zh-mznfnk!r^_&n+%8l+cv+b+@ywz7&c!'
 
 DEBUG = False
@@ -12,8 +14,8 @@ DATABASES = {
         'USER': os.environ.get('DB_USERNAME'),
         'NAME': os.environ.get('DB_USERNAME'),
         'PASSWORD': os.environ.get('PROJECT_DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-	'OPTIONS': {
+        'HOST': os.environ.get('DB_HOST'),
+        'OPTIONS': {
             'isolation_level': psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE,
         }
     }
