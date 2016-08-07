@@ -10,7 +10,11 @@
                 {% for poll in polls %}
                     <h3>{{ poll.title }}</h3>
                     <p>{{ poll.description|truncatewords:30 }}</p>
-                    <a href="{% url "poll" poll_code=poll.code %}" class="btn btn-success">Wypełnij ankietę</a>
+                    {% if poll.code in request.session.voted_polls %}
+                        <a class="btn btn-success disabled">Ankieta wypełniona</a>
+                    {% else %}
+                        <a href="{% url "poll" poll_code=poll.code %}" class="btn btn-success">Wypełnij ankietę</a>
+                    {% endif %}
                     {% if not forloop.last %}
                         <hr>
                     {% endif %}

@@ -38,6 +38,9 @@
                 // let the browser natively reset defaults
                 form[0].reset();
             });
+            $('form').on('submit', function () {
+                $('button[type=submit]').html('<i class="fa fa-refresh fa-spin fa-2x"></i>')
+            })
         })
     </script>
 {% endblock %}

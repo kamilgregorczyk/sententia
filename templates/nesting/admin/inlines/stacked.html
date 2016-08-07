@@ -35,7 +35,11 @@
                             </h3>
                             {% if not is_nested %}
                                 <h2>
-                                    {{ inline_admin_form.original }}
+                                    {% if inline_admin_form.original.id %}
+                                        {{ inline_admin_form.original }}
+                                    {% else %}
+                                        Pytanie
+                                    {% endif %}
                                     <span style="float:right" class="roll" data-roll="not-rolled"> ZWIŃ</span>
                                 </h2>
                             {% endif %}
@@ -46,11 +50,21 @@
                                 </ul>
                             {% endif %}
 
-                            <div class="flex-center">
+                            <div class="relative {% if not is_nested %}not-nested-form{% endif %}">
                                 {% for fieldset in inline_admin_form %}
                                     {% include inline_admin_formset.opts.fieldset_template %}
 
                                 {% endfor %}
+
+                                <div class="del {% if not is_nested %} question {% endif %}">
+                                    {% if inline_admin_formset.formset.can_delete %}
+                                        {% if inline_admin_form.original %}
+                                            <span class="delete djn-delete-handler {{ inline_admin_formset.handler_classes|join:" " }}">{{ inline_admin_form.deletion_field.field }} {{ inline_admin_form.deletion_field.label_tag }}</span>
+                                        {% else %}
+                                            <span><a class="inline-deletelink djn-remove-handler {{ inline_admin_formset.handler_classes|join:" " }}" href="javascript:void(0)">Remove</a></span>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
 
                             </div>
                             {% if inline_admin_form.has_auto_field or inline_admin_form.needs_explicit_pk_field %}

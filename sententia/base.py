@@ -11,6 +11,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'poll',
+    'compressor',
     'nested_admin',
     'adminsortable',
     'tabbed_admin',
@@ -53,7 +54,6 @@ WSGI_APPLICATION = 'sententia.wsgi.application'
 AUTHENTICATION_BACKENDS = [
     'poll.backends.UserModelEmailBackend',  # Login w/ email
     'django.contrib.auth.backends.ModelBackend',  # Login w/ username
-    'guardian.backends.ObjectPermissionBackend'
 ]
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -83,3 +83,12 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+
+COMPRESS_ENABLED = True
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+)
+COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter', 'compressor.filters.cssmin.CSSMinFilter']
