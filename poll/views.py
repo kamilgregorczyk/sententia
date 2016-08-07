@@ -4,7 +4,6 @@ import locale
 import time
 import uuid
 
-import slugify
 import xlwt
 from django import forms
 from django.core.exceptions import PermissionDenied
@@ -12,6 +11,7 @@ from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.http.response import HttpResponseRedirect, Http404, JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.template.defaultfilters import slugify
 from django.template.loader import render_to_string
 from django.utils import timezone
 
@@ -133,7 +133,7 @@ def datetime_from_utc_to_local(utc_datetime):
 def get_results_excel(request, object_id):
     results_dict = results(request, object_id)
     workbook = xlwt.Workbook()
-    fname = slugify.slugify(results_dict['poll'].title[:30])
+    fname = slugify(results_dict['poll'].title[:30])
     sheet = workbook.add_sheet(fname)
     cell = 1
     row = 0
