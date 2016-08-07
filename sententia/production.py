@@ -9,7 +9,7 @@ ALLOWED_HOSTS = ['sententia.uniqe15.usermd.net']
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'USER': 'os.environ.get('DB_USERNAME'),
+        'USER': os.environ.get('DB_USERNAME'),
         'NAME': os.environ.get('DB_USERNAME'),
         'PASSWORD': os.environ.get('PROJECT_DB_PASSWORD'),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
