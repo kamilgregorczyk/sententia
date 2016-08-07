@@ -11,5 +11,4 @@
 /logs/*
 /tmp/*
 /public/*
-/sententia/local.py
 /sententia/production.py
