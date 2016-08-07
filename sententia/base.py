@@ -53,7 +53,6 @@ WSGI_APPLICATION = 'sententia.wsgi.application'
 AUTHENTICATION_BACKENDS = [
     'poll.backends.UserModelEmailBackend',  # Login w/ email
     'django.contrib.auth.backends.ModelBackend',  # Login w/ username
-    'guardian.backends.ObjectPermissionBackend'
 ]
 AUTH_PASSWORD_VALIDATORS = [
     {
