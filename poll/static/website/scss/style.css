@@ -6,6 +6,9 @@ body {
 
 #container {
   padding-top: 5%; }
+  @media screen and (max-width: 768px) {
+    #container > .row {
+      margin: 0 !important; } }
 
 h1 {
   margin-top: 0; }

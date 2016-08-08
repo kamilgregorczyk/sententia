@@ -10,6 +10,11 @@ body {
 
 #container {
   padding-top: 5%;
+  > .row {
+    @media screen and (max-width: 768px) {
+      margin: 0 !important;
+    }
+  }
 }
 
 h1 {
@@ -82,7 +87,6 @@ html, body {
   .navbar-brand {
     color: $purple !important;
   }
-
 }
 
 .flex-center {
