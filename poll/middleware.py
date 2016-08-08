@@ -5,5 +5,5 @@ class LoginRequiredMiddleware:
     def process_request(self, request):
         if not request.user.is_authenticated():
             path = request.path_info
-            if path not in allowed_urls:
+            if not any([path.startswith(i) for i in allowed_urls]) and path != '/':
                 return HttpResponseRedirect('/admin/login/?next=' + path)

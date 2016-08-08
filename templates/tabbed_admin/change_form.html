@@ -22,7 +22,7 @@
                     <ul>
                         {% for tab in tabs.fields %}
                             <li><a href="#tabs-{{ forloop.counter }}" id="for_tabs-{{ forloop.counter }}">{{ tab.name }}</a></li>
-                            {% if forloop.last %}
+                            {% if forloop.last and adminform.form.instance.id %}
                                 <li><a href="#tabs-{{ forloop.counter|add:"1" }}" id="for_tabs-{{ forloop.counter|add:"1" }}">Wyniki</a></li>
                             {% endif %}
                         {% endfor %}
@@ -33,11 +33,14 @@
                                 {% render_tab_fieldsets_inlines entry %}
                             {% endfor %}
                         </div>
-                        {% if forloop.last %}
+                        {% if forloop.last and adminform.form.instance.id %}
                             <div id="tabs-{{ forloop.counter|add:"1" }}" class="Wyniki">
                                 <div class="text-right">
+                             
                                     <a class="btn btn-refresh"><i class="fa fa-refresh"></i> Odśwież</a>
+
                                     <a class="btn btn-excel" href="{% url 'results_excel' object_id=adminform.form.instance.id %}"><i class="fa fa-file-excel-o"></i> Excel</a>
+                               
                                 </div>
                                 <div class="reload">
                                     <div class="overlay" style="display:none;">
@@ -60,7 +63,7 @@
                     (function ($) {
 
                         $(window).scrollTop()
-
+                        {%if adminform.form.instance.id %}
                         $('.btn-refresh').click(function (e) {
                             e.preventDefault();
                             $.ajax({
@@ -75,6 +78,7 @@
                                 }
                             })
                         });
+                        {% endif %}
                         // disable tabs marked as such in page_config
                         var enabled_tabs = [];
                         var disabled_tabs = [];
