@@ -29,6 +29,38 @@ html, body {
 
 }
 
+.navbar {
+  .navbar-toggle {
+    border: 2px solid $purple !important;
+    span {
+      background-color: $purple !important;
+      border-color: $purple !important;
+    }
+  }
+  @media screen and(max-width: 768px) {
+    .pull-right {
+      float: none !important;
+    }
+  }
+}
+
+.nav {
+  margin-top: 5px;
+}
+
+.navbar-brand {
+  @extend %flex;
+  align-items: center;
+  margin: 5px -15px !important;
+  img {
+    width: 70px;
+  }
+  .block {
+    font-size: 24px;
+    font-weight: lighter;
+  }
+}
+
 .main-wrapper {
   min-height: 100%;
   @extend %flex;
@@ -49,6 +81,20 @@ html, body {
   }
   .navbar-brand {
     color: $purple !important;
+  }
+
+}
+
+.flex-center {
+  @extend %flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.error {
+  img {
+    width: 100px;
   }
 
 }

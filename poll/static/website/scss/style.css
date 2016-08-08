@@ -13,12 +13,33 @@ h1 {
 html, body {
   height: 100%; }
 
-.main-wrapper {
+.navbar-brand, .main-wrapper, .flex-center {
   display: -webkit-box;
   display: -moz-box;
   display: -ms-flexbox;
   display: -webkit-flex;
   display: flex; }
+
+.navbar .navbar-toggle {
+  border: 2px solid #2979ff !important; }
+  .navbar .navbar-toggle span {
+    background-color: #2979ff !important;
+    border-color: #2979ff !important; }
+@media screen and (max-width: 768px) {
+  .navbar .pull-right {
+    float: none !important; } }
+
+.nav {
+  margin-top: 5px; }
+
+.navbar-brand {
+  align-items: center;
+  margin: 5px -15px !important; }
+  .navbar-brand img {
+    width: 70px; }
+  .navbar-brand .block {
+    font-size: 24px;
+    font-weight: lighter; }
 
 .main-wrapper {
   min-height: 100%;
@@ -35,6 +56,14 @@ html, body {
     color: #555555 !important; }
   .navbar .navbar-brand {
     color: #2979ff !important; }
+
+.flex-center {
+  align-items: center;
+  justify-content: center;
+  height: 100%; }
+
+.error img {
+  width: 100px; }
 
 .inline li {
   display: inline-block; }

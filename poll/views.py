@@ -90,8 +90,8 @@ def index(request):
 
 def results(request, object_id):
     table = []
-    poll = Poll.objects.prefetch_related('questions', 'questions__choices', 'questions__votes').get(id=object_id)
-    if not (poll.created_by == request.user or poll.allowed_users == request.user or request.user in poll.allowed_groups.values_list('user')):
+    poll = Poll.objects.prefetch_related('questions', 'questions__choices', 'questions__votes', 'allowed_users', 'allowed_groups').get(id=object_id)
+    if not (poll.created_by == request.user or request.user in poll.allowed_users.all() or request.user.id in poll.allowed_groups.values_list('user__id', flat=True)):
         raise PermissionDenied()
     form_ids = list(poll.votes.values_list('form_id', 'created_at').distinct('form_id'))
     form_ids.sort(key=lambda k: k[1], reverse=True)

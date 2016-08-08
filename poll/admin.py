@@ -1,8 +1,11 @@
+# coding=utf-8
 import datetime
 import json
+from random import randint
 
 from django.conf import settings
 from django.contrib import admin
+from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.utils.safestring import mark_safe
@@ -44,14 +47,41 @@ class QuestionInline(NestedStackedInline):
 
 
 class PollAdmin(TabbedModelAdmin, NestedModelAdmin):
-    list_display = ['title', 'status']
     inlines = [QuestionInline, TokenInline]
     form = PollAdminForm
+    list_display = ['title', 'absolute_link', '_status', '_list_status', '_auth', 'created_by']
+    search_fields = ['title', 'absolute_link', 'created_by', 'description']
     tab_main = (
         (None, {
-            'fields': ('title', 'code', 'status', 'list_status', 'auth', 'description')
+            'fields': ('title', 'code', 'status', 'list_status', 'auth', 'created_by', 'description')
         }),
     )
+    readonly_fields = ['created_by']
+
+    def _status(self, obj):
+        return bool(obj.status)
+
+    _status.short_description = u'Status'
+    _status.boolean = True
+
+    def _list_status(self, obj):
+        return bool(obj.list_status)
+
+    _list_status.short_description = u'Publikowana na głównej'
+    _list_status.boolean = True
+
+    def _auth(self, obj):
+        return bool(obj.auth)
+
+    _auth.short_description = u'Autoryzowana tokenami'
+    _auth.boolean = True
+
+    def absolute_link(self, obj):
+        return '<a href="{0}" target="_blank">{0}</a>'.format(obj.get_absolute_url())
+
+    absolute_link.short_description = u'Autoryzowana tokenami'
+    absolute_link.allow_tags = True
+
     tab_permissions = (
         (None, {
             'fields': ('allowed_users', 'allowed_groups',)
@@ -76,25 +106,26 @@ class PollAdmin(TabbedModelAdmin, NestedModelAdmin):
         return form
 
     def get_tabs(self, request, obj=None):
-        tabs = self.tabs
         if obj and request.user != obj.created_by:
-            tabs = [
+            self.tabs = [
                 (u'Podstawowe dane', self.tab_main),
                 (u'Pytania', self.tab_questions),
                 (u'Tokeny', self.tab_tokens)
             ]
 
-        self.tabs = tabs
-        return super(PollAdmin, self).get_tabs(request, obj)
+        return self.tabs
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
-        poll = Poll.objects.get(id=object_id)
+        poll = Poll.objects.prefetch_related('questions', 'questions__choices', 'questions__votes', 'allowed_users', 'allowed_groups').get(id=object_id)
+        if not (poll.created_by == request.user or request.user in poll.allowed_users.all() or request.user.id in poll.allowed_groups.values_list('user__id', flat=True)):
+            raise PermissionDenied()
         max_votes = range(max([question.votes.count() for question in poll.questions.all()]))
         extra_context = {
             "max_votes": max_votes,
             "table": json.loads(get_results(request, object_id).content),
         }
-        return super(PollAdmin, self).change_view(request, object_id, form_url, extra_context=extra_context)
+        change_view = super(PollAdmin, self).change_view(request, object_id, form_url, extra_context=extra_context)
+        return change_view
 
     def get_queryset(self, request):
         return super(PollAdmin, self).get_queryset(request).filter(Q(created_by=request.user) | Q(allowed_users=request.user) | Q(allowed_groups__user=request.user)).distinct()
@@ -107,9 +138,8 @@ class PollAdmin(TabbedModelAdmin, NestedModelAdmin):
         return super(PollAdmin, self).save_model(request, obj, form, change)
 
     class Media:
-        css = {'all': ['poll/css/admin.css', 'poll/css/select2.min.css']}
-        js = ['admin/js/jquery.js', 'poll/js/admin.js', 'poll/js/select2.full.min.js',
-              'https://use.fontawesome.com/4c8a121ad3.js']
+        css = {'all': ['poll/css/admin.css', 'poll/css/select2.min.css', 'website/css/font-awesome.min.css']}
+        js = ['admin/js/jquery.js', 'poll/js/admin.js', 'poll/js/select2.full.min.js', 'website/js/clipboard.min.js']
 
 
 admin.site.register(Poll, PollAdmin)

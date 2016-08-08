@@ -1,0 +1,114 @@
+{% extends 'admin/base_site.html' %}{% load i18n %}{% load staticfiles %}
+{% block breadcrumbs %}
+    <div class="breadcrumbs">
+        <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+        &rsaquo;
+        FAQ
+
+    </div>
+{% endblock %}
+{% block content_title %}
+    <h1>FAQ</h1>
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'website/css/font-awesome.min.css' %}">
+{% endblock %}
+{% block content %}
+
+    <h2>Ankiety</h2>
+    <ol>
+
+        <li>
+            <h3>Jak dodać ankietę?</h3>
+            <ul>
+                <li>Ankietę można dodać klikając w przycisk w prawym górnym rogu "Dodaj Ankieta" na liście ankiet lub klikając w <a href="/admin/poll/poll/add/">ten link</a></li>
+            </ul>
+
+        </li>
+        <li>
+            <h3>Jak edytować ankietę?</h3>
+            <ul>
+                <li>Ankietę można dodać klikając w jej tytuł na <a href="/admin/poll/poll/">liście ankiet</a></li>
+            </ul>
+        </li>
+        <li>
+            <h3>Co oznaczają zakładki na stronie edycji ankiety?</h3>
+            <ul>
+                <li><strong>Podstawowe dane</strong> - zakładka z ogólnymi polami</li>
+                <li><strong>Pytania</strong> - zakładka z pytaniami do ankiety</li>
+                <li><strong>Tokeny</strong> - zakładka z indywidualnymi kluczami do ankiety</li>
+                <li><strong>Uprawnienia</strong> - zakładka gdzie możemy udostępniamy ankietę innym</li>
+                <li><strong>Wyniki</strong> - zakładka z przesłanymi wynikami</li>
+            </ul>
+        </li>
+        <li>
+            <h3>Co oznaczają pola na stronie edycji ankiety?</h3>
+            <ul>
+                <li>
+                    <strong>Podstawowe dane</strong>
+                    <ul>
+                        <li><strong>Tytuł</strong> - pole zawierające tytuł ankiety (pole wymagane)</li>
+                        <li><strong>Klucz</strong> - pole zawierające identyfikator ankiety (pole tylko do odczytu, używane w linku do ankiety)</li>
+                        <li><strong>Status</strong> - pole gdzie zmieniamy widoczność ankiety dla studentów (wersja kliencka)</li>
+                        <li><strong>Widoczna na stronie głównej</strong> - pole gdzie zmieniamy widoczność ankiety na stronie głównej <br>
+                            <small style="color:red;">UWAGA: Aby ankieta pojawiła się na stronie głównej musi mieć także status "publikowana" oraz musi być otwarta</small>
+                        </li>
+                        <li><strong>Typ autoryzacji</strong> - "otwarta" oznacza że każda osoba może wysłać ankietę, "zabezpieczona kluczami" oznacza że dostęp można mieć tylko przez indywidualne
+                            linki generowane w zakładce "Tokeny"
+                        </li>
+                        <li><strong>Autor</strong> - wyświetla autora ankiety (przydatne dla osób którym udostępniamy ankietę)</li>
+                        <li><strong>Opis</strong> - opis wyświetlany na starcie ankiety i stronie głównej</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Pytania</strong>
+                    <div>Pytania dodajemy klikając na samym dole w "Dodaj kolejne Pytania", usuwamy naciskając checkbox <input type="checkbox"/> po prawej stronie lub ikonę
+                        <div style="background:url(/static/admin/img/inline-delete.svg) 0 0 no-repeat; width:16px;height:16px; display:inline-block;"></div>
+                        jeżeli pytanie nie zostało jeszcze zapisane.
+                    </div>
+                    <div>Ikony <i class="fa fa-arrows"></i> służą do zmiany kolejności pytań (drag & drop)</div>
+                    <ul>
+                        <li><strong>Pytanie</strong> - ...pytanie</li>
+                        <li><strong>Typ pytania</strong> - rodzaj pytania</li>
+                        <li><strong>Wymagane</strong> - czy pytanie jest wymagane (domyślnie tak)</li>
+                        <li><strong>Wybory</strong>
+                            <ul>
+                                <li>
+                                    Wybory to warianty jakie może zaznaczyć ankietujacy, w przypadku typu pytania <strong>"Skala wielowierszowa"</strong> stanowią one tytuły dla kolejnych wierszy, dla
+                                    <strong>"Skala"</strong> oraz <strong>"Pole tekstowe"</strong> są pomijane.
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Tokeny</strong>
+                    <div>Tutaj możemy wygenerować tokeny dla indywidualnych linków do ankiety
+                        <br>
+                        <small style="color:red;">UWAGA: Może się zdażyć że wygenerowany token może nie być unikalny, wtedy należy samemu wpisać losowe znaki</small>
+                    </div>
+                </li>
+                <li>
+                    <strong>Uprawnienia</strong>
+                    <ul>
+                        <li><strong>Osoby które mogą...</strong> - zaznaczamy osoby które mają otrzymać dostęp do naszej ankiety (pełny oprócz możliwości zmiany uprawnień)</li>
+                        <li><strong>Grupy które mogą...</strong> - zaznaczamy grupy które mają otrzymać dostęp do naszej ankiety (pełny oprócz możliwości zmiany uprawnień)
+                            <br>
+                            <small>Tutaj widnieją tylko grupy bez uprawień</small>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Wyniki</strong>
+                    <ul>
+                        <li><strong>Przycisk odśwież</strong> - odświeża listę wyników</li>
+                        <li><strong>Przycisk Excel</strong> - eksportuje wyniki do .xls</li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+
+    </ol>
+{% endblock %}

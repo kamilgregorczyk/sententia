@@ -5,7 +5,8 @@
 
     <div id="content-main">
         {% block object-tools %}{{ block.super }}{% endblock %}
-        <form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.model_name }}_form" novalidate>{% csrf_token %}{% block form_top %}{% endblock %}
+        <form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.model_name }}_form" novalidate>
+            {% csrf_token %}{% block form_top %}{% endblock %}
             <div>
                 {% if is_popup %}<input type="hidden" name="{{ is_popup_var }}" value="1"/>{% endif %}
                 {% if to_field %}<input type="hidden" name="{{ to_field_var }}" value="{{ to_field }}"/>{% endif %}
@@ -29,6 +30,12 @@
                     </ul>
                     {% for tab in tabs.fields %}
                         <div id="tabs-{{ forloop.counter }}" class="{{ tab.name }}">
+                            {% if tab.name == "Tokeny" %}
+                                <div class="text-right">
+                                    <a href="javascript:void(0)" class="btn btn-primary btn-token" data-clipboard-action="copy"
+                                       data-clipboard-text="{% for token in adminform.form.instance.tokens.all %}{{ request.base_url }}{% url 'poll' poll_code=adminform.form.instance.id token=token %} &#10;{% endfor %}"> <i class="fa fa-clipboard" aria-hidden="true"></i> Kopiuj adresy do schowka</a>
+                                </div>
+                            {% endif %}
                             {% for entry in tab.entries %}
                                 {% render_tab_fieldsets_inlines entry %}
                             {% endfor %}
@@ -36,11 +43,11 @@
                         {% if forloop.last and adminform.form.instance.id %}
                             <div id="tabs-{{ forloop.counter|add:"1" }}" class="Wyniki">
                                 <div class="text-right">
-                             
+
                                     <a class="btn btn-refresh"><i class="fa fa-refresh"></i> Odśwież</a>
 
                                     <a class="btn btn-excel" href="{% url 'results_excel' object_id=adminform.form.instance.id %}"><i class="fa fa-file-excel-o"></i> Excel</a>
-                               
+
                                 </div>
                                 <div class="reload">
                                     <div class="overlay" style="display:none;">
@@ -63,21 +70,22 @@
                     (function ($) {
 
                         $(window).scrollTop()
+                        new Clipboard('.btn-token');
                         {%if adminform.form.instance.id %}
-                        $('.btn-refresh').click(function (e) {
-                            e.preventDefault();
-                            $.ajax({
-                                url: "{% url 'results' object_id=adminform.form.instance.id %}",
-                                method: "GET",
-                                beforeSend: function () {
-                                    $('.overlay').show();
-                                },
-                                success: function (data) {
-                                    $('.to-replace').html(data.html);
-                                    $('.overlay').hide();
-                                }
-                            })
-                        });
+                            $('.btn-refresh').click(function (e) {
+                                e.preventDefault();
+                                $.ajax({
+                                    url: "{% url 'results' object_id=adminform.form.instance.id %}",
+                                    method: "GET",
+                                    beforeSend: function () {
+                                        $('.overlay').show();
+                                    },
+                                    success: function (data) {
+                                        $('.to-replace').html(data.html);
+                                        $('.overlay').hide();
+                                    }
+                                })
+                            });
                         {% endif %}
                         // disable tabs marked as such in page_config
                         var enabled_tabs = [];

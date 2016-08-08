@@ -17,7 +17,7 @@ class BaseModel(models.Model):
     updated_by = models.ForeignKey(User, null=True, related_name='+', on_delete=models.SET_NULL, editable=False)
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
-    created_by = models.ForeignKey(User, null=True, related_name='+', on_delete=models.SET_NULL, editable=False)
+    created_by = models.ForeignKey(User, null=True, related_name='+', on_delete=models.SET_NULL, editable=False, verbose_name=u"Autor")
 
     class Meta:
         abstract = True
@@ -46,6 +46,9 @@ class Poll(BaseModel):
     max_replies = models.IntegerField(u"Maksymalna liczba odpowiedzi", null=True, blank=True, help_text=u"Zostaw puste jeżeli ma być nieograniczona")
     allowed_users = models.ManyToManyField(User, verbose_name=u"Osoby które mogą zobaczyć i edytować ankietę", blank=True)
     allowed_groups = models.ManyToManyField(Group, verbose_name=u"Grupy które mogą zobaczyć i edytować ankietę", blank=True)
+
+
+
 
     def __unicode__(self):
         return self.title
@@ -123,7 +126,7 @@ class Vote(models.Model):
     poll = models.ForeignKey(Poll, related_name="votes")
     form_id = models.CharField(u"Kod", max_length=255)
     value = models.CharField(u"Wartość", max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True, editable=False )
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
 
     class Meta:
         verbose_name = u'Wybór'

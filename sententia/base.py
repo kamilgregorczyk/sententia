@@ -11,6 +11,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'poll',
+    'compressor',
     'nested_admin',
     'adminsortable',
     'tabbed_admin',
@@ -82,3 +83,12 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+
+COMPRESS_ENABLED = True
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+)
+COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter', 'compressor.filters.cssmin.CSSMinFilter']

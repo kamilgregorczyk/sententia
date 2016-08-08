@@ -24,6 +24,10 @@
     margin-bottom: 15px;
 }
 
+.roll {
+    cursor: pointer;
+}
+
 .overlay {
     position: absolute;
     width: 100%;
@@ -46,10 +50,31 @@
     background: #2979ff;
     padding: 10px 15px !important;
     color: white !important;
+    font-size: 13px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     display: inline-block;
+}
+
+.relative {
+    position: relative;
+}
+
+.del {
+    position: absolute;
+    right: 0;
+    top: 13px;
+    z-index: 100;
+}
+
+.question {
+    top: 15px;
+    right: 0;
+}
+
+.not-nested-form .form-row {
+    width: calc(100% - 100px) !important;
 }
 
 #tabs > ul li {

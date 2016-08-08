@@ -31,3 +31,5 @@ EMAIL_HOST = 'mail8.mydevil.net'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'sententia@uniqe15.usermd.net'
 EMAIL_HOST_PASSWORD = '#Qwemelly24'
+
+
