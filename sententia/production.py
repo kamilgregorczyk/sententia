@@ -2,7 +2,7 @@ import psycopg2
 
 from base import *
 
-SECRET_KEY = '6g@a7pu2g)+cg5@d8zh-mznfnk!r^_&n+%8l+cv+b+@ywz7&c!'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 DEBUG = False
 BASE_URL = 'http://sententia.uniqe15.usermd.net'
