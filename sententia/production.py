@@ -5,7 +5,7 @@ from base import *
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 DEBUG = False
-BASE_URL = 'http://sententia.uniqe15.usermd.net'
+BASE_URL = 'https://sententia.uniqe15.usermd.net'
 ALLOWED_HOSTS = ['sententia.uniqe15.usermd.net']
 
 DATABASES = {
@@ -32,4 +32,6 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'sententia@uniqe15.usermd.net'
 EMAIL_HOST_PASSWORD = '#Qwemelly24'
 
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
