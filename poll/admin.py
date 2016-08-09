@@ -58,6 +58,24 @@ class PollAdmin(TabbedModelAdmin, NestedModelAdmin):
     )
     readonly_fields = ['created_by']
 
+    tab_permissions = (
+        (None, {
+            'fields': ('allowed_users', 'allowed_groups',)
+        }),
+    )
+    tab_questions = (
+        QuestionInline,
+    )
+    tab_tokens = (
+        TokenInline,
+    )
+    tabs = [
+        (u'Podstawowe dane', tab_main),
+        (u'Pytania', tab_questions),
+        (u'Tokeny', tab_tokens),
+        (u'Uprawnienia', tab_permissions)
+    ]
+
     def _status(self, obj):
         return bool(obj.status)
 
@@ -82,24 +100,6 @@ class PollAdmin(TabbedModelAdmin, NestedModelAdmin):
     absolute_link.short_description = u'Autoryzowana tokenami'
     absolute_link.allow_tags = True
 
-    tab_permissions = (
-        (None, {
-            'fields': ('allowed_users', 'allowed_groups',)
-        }),
-    )
-    tab_questions = (
-        QuestionInline,
-    )
-    tab_tokens = (
-        TokenInline,
-    )
-    tabs = [
-        (u'Podstawowe dane', tab_main),
-        (u'Pytania', tab_questions),
-        (u'Tokeny', tab_tokens),
-        (u'Uprawnienia', tab_permissions)
-    ]
-
     def get_form(self, request, obj=None, **kwargs):
         form = super(PollAdmin, self).get_form(request, obj, **kwargs)
         form.current_user = request.user
@@ -107,13 +107,17 @@ class PollAdmin(TabbedModelAdmin, NestedModelAdmin):
 
     def get_tabs(self, request, obj=None):
         if obj and request.user != obj.created_by:
-            self.tabs = [
+            return [
                 (u'Podstawowe dane', self.tab_main),
                 (u'Pytania', self.tab_questions),
                 (u'Tokeny', self.tab_tokens)
             ]
-
-        return self.tabs
+        return [
+            (u'Podstawowe dane', self.tab_main),
+            (u'Pytania', self.tab_questions),
+            (u'Tokeny', self.tab_tokens),
+            (u'Uprawnienia', self.tab_permissions)
+        ]
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         poll = Poll.objects.prefetch_related('questions', 'questions__choices', 'questions__votes', 'allowed_users', 'allowed_groups').get(id=object_id)
