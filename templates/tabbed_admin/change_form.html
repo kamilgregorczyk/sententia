@@ -33,12 +33,7 @@
                             {% if tab.name == "Tokeny" %}
                                 <div class="text-right">
                                     <a href="javascript:void(0)" class="btn btn-primary btn-token" data-clipboard-action="copy"
-                                       data-clipboard-text="
-
-
-
-
-                                               {% for token in adminform.form.instance.tokens.all %}{{ request.base_url }}{% url 'poll' poll_code=adminform.form.instance.id token=token %} &#10;{% endfor %}">
+                                       data-clipboard-text="{% for token in adminform.form.instance.tokens.all %}{{ request.base_url }}{% url 'poll' poll_code=adminform.form.instance.id token=token %} &#10;{% endfor %}">
                                         <i class="fa fa-clipboard" aria-hidden="true"></i> Kopiuj adresy do schowka</a>
                                 </div>
                             {% endif %}
