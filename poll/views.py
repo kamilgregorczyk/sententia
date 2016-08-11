@@ -37,7 +37,7 @@ def poll_start(request, poll_code, token=None):
 def poll_view(request, poll_code, token=None):
     poll = get_object_or_404(Poll.objects.prefetch_related('questions', 'tokens', 'questions__choices'), code=poll_code, status=1)
     token_obj = None
-    voted_polls = request.sesion.get('voted_polls', [])
+    voted_polls = request.session.get('voted_polls', [])
     """Brak tokenu"""
     if poll.auth and not token:
         raise PermissionDenied
