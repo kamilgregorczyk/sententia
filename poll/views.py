@@ -153,7 +153,10 @@ def get_results_excel(request, object_id):
         for c in r:
             if cell == 0:
                 c = datetime_from_utc_to_local(c).strftime(u'%d-%m-%y %H:%M')
-            sheet.write(row, cell, c)
+            if c.isdigit():
+                sheet.write(row, cell, int(c))
+            else:
+                sheet.write(row, cell, c)
             cell += 1
         row += 1
     response = HttpResponse(content_type="application/ms-excel")
