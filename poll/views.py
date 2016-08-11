@@ -37,6 +37,7 @@ def poll_start(request, poll_code, token=None):
 def poll_view(request, poll_code, token=None):
     poll = get_object_or_404(Poll.objects.prefetch_related('questions', 'tokens', 'questions__choices'), code=poll_code, status=1)
     token_obj = None
+    voted_polls = request.sesion.get('voted_polls', [])
     """Brak tokenu"""
     if poll.auth and not token:
         raise PermissionDenied
@@ -45,6 +46,8 @@ def poll_view(request, poll_code, token=None):
         token_obj = get_object_or_404(poll.tokens, code=token)
         if token_obj.voted:
             raise PermissionDenied
+    if poll.code in voted_polls:
+        raise PermissionDenied
     questions_count = poll.questions.count()
     QuestionFormset = forms.formset_factory(SingleChoiceForm, BaseQuestionFormset, extra=questions_count, validate_max=True, validate_min=True, min_num=questions_count,
                                             max_num=questions_count)
@@ -60,6 +63,8 @@ def poll_view(request, poll_code, token=None):
                         Vote(value=field['choice'], form_id=form_id, question=poll.questions.all()[index], poll=poll).save()
 
                 next_values = {"poll_code": poll.code}
+                voted_polls.append(poll.code)
+                request.session["voted_polls"] = voted_polls
                 if token_obj:
                     next_values.update({"token": token})
                     token_obj.voted = True
