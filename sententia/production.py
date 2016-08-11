@@ -30,7 +30,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST = 'mail8.mydevil.net'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'admin@sententiaup.pl'
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASS')
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
