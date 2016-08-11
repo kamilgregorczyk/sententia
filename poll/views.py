@@ -22,6 +22,12 @@ from poll.forms import SingleChoiceForm
 from poll.helpers import datetime_from_utc_to_local
 from poll.models import Poll, Vote
 
+error_messages = {
+    "missing_token": u"""Ankieta jest zabezpieczona indywidualnymi linkami, możesz ją wypełnić tylko posiadając link z kluczem.""",
+    "token_used": u"""Z tego linku już ktoś głosował w ankiecie i nie można użyć go ponownie.""",
+    "already_voted": u"""Już oddałeś/aś głos w tej ankiecie, dziękujemy!""",
+}
+
 
 class ViewPermissions(object):
     check_token = True
@@ -30,17 +36,27 @@ class ViewPermissions(object):
         self.poll = get_object_or_404(Poll.objects.select_related('created_by').prefetch_related('questions', 'tokens', 'questions__choices'), code=kwargs["poll_code"], status=1)
         self.token = None
         self.voted_polls = request.session.get('voted_polls', [])
-        """Missing token"""
+        self.error = False
         if self.poll.auth and not kwargs.get("token", None):
-            return HttpResponseRedirect(reverse("poll_error") + "?error=missing_token")
-        """Token used"""
+            self.error = True
+            return HttpResponse(render_to_string("website/error.html", {"msg": error_messages["missing_token"]}))
+
         if kwargs.get("token", None) and self.poll.auth:
             self.token = get_object_or_404(self.poll.tokens, code=kwargs.get("token", None))
             if self.token.voted and self.check_token:
-                return HttpResponseRedirect(reverse("poll_error") + "?error=token_used")
+                self.error = True
+                return HttpResponse(render_to_string("website/error.html", {"msg": error_messages["token_used"]}))
+
         if self.poll.code in self.voted_polls and self.check_token and not self.poll.auth:
-            return HttpResponseRedirect(reverse("poll_error") + "?error=already_voted")
+            self.error = True
+            return HttpResponse(render_to_string("website/error.html", {"msg": error_messages["already_voted"]}))
+
         return super(ViewPermissions, self).dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if self.error:
+            raise PermissionDenied
+        return super(ViewPermissions, self).post(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(ViewPermissions, self).get_context_data(**kwargs)
@@ -102,17 +118,6 @@ class PollEndView(ViewPermissions, TemplateView):
 
 class PollErrorView(TemplateView):
     template_name = "website/error.html"
-    error_messages = {
-        "missing_token": u"""Ankieta jest zabezpieczona indywidualnymi linkami, możesz ją wypełnić tylko posiadając link z kluczem.""",
-        "token_used": u"""Z tego linku już ktoś głosował w ankiecie i nie można go użyć ponownie.""",
-        "already_voted": u"""Już oddałeś/aś głos w tej ankiecie, dziękujemy!""",
-        "None": " ",
-    }
-
-    def get_context_data(self, **kwargs):
-        context = super(PollErrorView, self).get_context_data(**kwargs)
-        context["msg"] = self.error_messages[self.request.GET.get("error", "None")]
-        return context
 
 
 class FAQView(TemplateView):
