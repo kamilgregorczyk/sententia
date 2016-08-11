@@ -77,11 +77,6 @@ def poll_end(request, poll_code, token=None):
     """Brak tokenu"""
     if poll.auth and not token:
         raise PermissionDenied
-    """Token wykorzystany"""
-    if token and poll.auth:
-        token_obj = get_object_or_404(poll.tokens, code=token)
-        if token_obj.voted:
-            raise PermissionDenied
     return render(request, 'website/end.html', {'poll': poll})
 
 
