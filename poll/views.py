@@ -25,10 +25,12 @@ def poll_start(request, poll_code, token=None):
     token_obj = None
     """Brak tokenu"""
     if poll.auth and not token:
-        raise Http404
-    """Token nieprawidlowy"""
+        raise PermissionDenied
+    """Token wykorzystany"""
     if token and poll.auth:
         token_obj = get_object_or_404(poll.tokens, code=token)
+        if token_obj.voted:
+            raise PermissionDenied
     return render(request, 'website/start.html', {'poll': poll, "token": token})
 
 
@@ -37,14 +39,15 @@ def poll_view(request, poll_code, token=None):
     token_obj = None
     """Brak tokenu"""
     if poll.auth and not token:
-        raise Http404
-    """Token nieprawidlowy"""
+        raise PermissionDenied
+    """Token wykorzystany"""
     if token and poll.auth:
         token_obj = get_object_or_404(poll.tokens, code=token)
         if token_obj.voted:
-            pass
+            raise PermissionDenied
     questions_count = poll.questions.count()
-    QuestionFormset = forms.formset_factory(SingleChoiceForm, BaseQuestionFormset, extra=questions_count, validate_max=True, validate_min=True, min_num=questions_count, max_num=questions_count)
+    QuestionFormset = forms.formset_factory(SingleChoiceForm, BaseQuestionFormset, extra=questions_count, validate_max=True, validate_min=True, min_num=questions_count,
+                                            max_num=questions_count)
     if request.method == 'POST':
         formset = QuestionFormset(request.POST, request.FILES, form_kwargs={"questions": poll.questions.all()})
         if formset.is_valid():
@@ -73,10 +76,12 @@ def poll_end(request, poll_code, token=None):
     token_obj = None
     """Brak tokenu"""
     if poll.auth and not token:
-        raise Http404
-    """Token nieprawidlowy"""
+        raise PermissionDenied
+    """Token wykorzystany"""
     if token and poll.auth:
         token_obj = get_object_or_404(poll.tokens, code=token)
+        if token_obj.voted:
+            raise PermissionDenied
     return render(request, 'website/end.html', {'poll': poll})
 
 
