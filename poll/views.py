@@ -111,7 +111,7 @@ class PollErrorView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(PollErrorView, self).get_context_data(**kwargs)
-        context["msg"] = self.request.get("error", "None")
+        context["msg"] = self.request.GET.get("error", "None")
         return context
 
 
