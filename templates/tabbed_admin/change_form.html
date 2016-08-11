@@ -33,7 +33,13 @@
                             {% if tab.name == "Tokeny" %}
                                 <div class="text-right">
                                     <a href="javascript:void(0)" class="btn btn-primary btn-token" data-clipboard-action="copy"
-                                       data-clipboard-text="{% for token in adminform.form.instance.tokens.all %}{{ request.base_url }}{% url 'poll' poll_code=adminform.form.instance.id token=token %} &#10;{% endfor %}"> <i class="fa fa-clipboard" aria-hidden="true"></i> Kopiuj adresy do schowka</a>
+                                       data-clipboard-text="
+
+
+
+
+                                               {% for token in adminform.form.instance.tokens.all %}{{ request.base_url }}{% url 'poll' poll_code=adminform.form.instance.id token=token %} &#10;{% endfor %}">
+                                        <i class="fa fa-clipboard" aria-hidden="true"></i> Kopiuj adresy do schowka</a>
                                 </div>
                             {% endif %}
                             {% for entry in tab.entries %}
@@ -55,7 +61,7 @@
                                     </div>
 
                                     <div class="to-replace">
-                                        {{ table.html|safe }}
+
                                     </div>
                                 </div>
                             </div>
@@ -69,9 +75,23 @@
 
                     (function ($) {
 
+
                         $(window).scrollTop()
                         new Clipboard('.btn-token');
                         {%if adminform.form.instance.id %}
+                            setTimeout(function () {
+                                $.ajax({
+                                    url: "{% url 'results' object_id=adminform.form.instance.id %}",
+                                    method: "GET",
+                                    beforeSend: function () {
+                                        $('.overlay').show();
+                                    },
+                                    success: function (data) {
+                                        $('.to-replace').html(data.html);
+                                        $('.overlay').hide();
+                                    }
+                                })
+                            }, 200)
                             $('.btn-refresh').click(function (e) {
                                 e.preventDefault();
                                 $.ajax({

@@ -24,7 +24,8 @@ class PollAdminForm(forms.ModelForm):
             pass
         if self.instance.pk:
             self.fields['code'].widget.attrs['readonly'] = True
-            self.fields['code'].help_text = u'Adres ankiety: <a href="{0}{1}" target="_blank">{0}{1}</a>'.format(settings.BASE_URL, reverse('poll', kwargs={"poll_code": self.instance.code}))
+            self.fields['code'].help_text = u'Adres ankiety: <a href="{0}{1}" target="_blank">{0}{1}</a>'.format(settings.BASE_URL,
+                                                                                                                 reverse('poll', kwargs={"poll_code": self.instance.code}))
         else:
             code = gen_code()
             i = 0
@@ -103,6 +104,7 @@ class TextAreaForm(QuestionFormBase):
 
 class BaseQuestionFormset(forms.BaseFormSet):
     def __init__(self, *args, **kwargs):
+        print kwargs
         self.questions = kwargs['form_kwargs'].pop('questions')
         super(BaseQuestionFormset, self).__init__(*args, **kwargs)
 

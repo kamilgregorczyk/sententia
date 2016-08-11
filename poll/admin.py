@@ -14,7 +14,6 @@ from tabbed_admin import TabbedModelAdmin
 
 from poll.forms import PollAdminForm
 from poll.models import Poll, Question, Choice, Token
-from poll.views import get_results
 
 
 class ChoiceInline(NestedStackedInline):
@@ -123,12 +122,7 @@ class PollAdmin(TabbedModelAdmin, NestedModelAdmin):
         poll = Poll.objects.prefetch_related('questions', 'questions__choices', 'questions__votes', 'allowed_users', 'allowed_groups').get(id=object_id)
         if not (poll.created_by == request.user or request.user in poll.allowed_users.all() or request.user.id in poll.allowed_groups.values_list('user__id', flat=True)):
             raise PermissionDenied()
-        max_votes = range(max([question.votes.count() for question in poll.questions.all()]))
-        extra_context = {
-            "max_votes": max_votes,
-            "table": json.loads(get_results(request, object_id).content),
-        }
-        change_view = super(PollAdmin, self).change_view(request, object_id, form_url, extra_context=extra_context)
+        change_view = super(PollAdmin, self).change_view(request, object_id, form_url, extra_context)
         return change_view
 
     def get_queryset(self, request):

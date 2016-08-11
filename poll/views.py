@@ -14,157 +14,184 @@ from django.shortcuts import render, get_object_or_404
 from django.template.defaultfilters import slugify
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.views.generic import FormView
+from django.views.generic.base import TemplateView, View
 
 from poll.forms import BaseQuestionFormset
 from poll.forms import SingleChoiceForm
+from poll.helpers import datetime_from_utc_to_local
 from poll.models import Poll, Vote
 
-
-def poll_start(request, poll_code, token=None):
-    poll = get_object_or_404(Poll.objects.select_related('created_by'), code=poll_code, status=1)
-    token_obj = None
-    """Brak tokenu"""
-    if poll.auth and not token:
-        raise PermissionDenied
-    """Token wykorzystany"""
-    if token and poll.auth:
-        token_obj = get_object_or_404(poll.tokens, code=token)
-        if token_obj.voted:
-            raise PermissionDenied
-    return render(request, 'website/start.html', {'poll': poll, "token": token})
+error_messages = {
+    "missing_token": u"""Ankieta jest zabezpieczona indywidualnymi linkami, możesz ją wypełnić tylko posiadając link z kluczem.""",
+    "token_used": u"""Z tego linku już ktoś głosował w ankiecie i nie można go użyć ponownie.""",
+    "already_voted": u"""Już oddałeś/aś głos w tej ankiecie, dziękujemy!""",
+}
 
 
-def poll_view(request, poll_code, token=None):
-    poll = get_object_or_404(Poll.objects.prefetch_related('questions', 'tokens', 'questions__choices'), code=poll_code, status=1)
-    token_obj = None
-    voted_polls = request.session.get('voted_polls', [])
-    """Brak tokenu"""
-    if poll.auth and not token:
-        raise PermissionDenied
-    """Token wykorzystany"""
-    if token and poll.auth:
-        token_obj = get_object_or_404(poll.tokens, code=token)
-        if token_obj.voted:
-            raise PermissionDenied
-    if poll.code in voted_polls:
-        raise PermissionDenied
-    questions_count = poll.questions.count()
-    QuestionFormset = forms.formset_factory(SingleChoiceForm, BaseQuestionFormset, extra=questions_count, validate_max=True, validate_min=True, min_num=questions_count,
-                                            max_num=questions_count)
-    if request.method == 'POST':
-        formset = QuestionFormset(request.POST, request.FILES, form_kwargs={"questions": poll.questions.all()})
-        if formset.is_valid():
-            form_id = uuid.uuid4()
-            with transaction.atomic():
-                for index, field in enumerate(formset.cleaned_data):
-                    if isinstance(field['choice'], type([])):
-                        Vote(value=', '.join(field['choice']), form_id=form_id, question=poll.questions.all()[index], poll=poll).save()
+class ViewPermissions(object):
+    check_token = True
+
+    def dispatch(self, request, *args, **kwargs):
+        self.poll = get_object_or_404(Poll.objects.select_related('created_by').prefetch_related('questions', 'tokens', 'questions__choices'), code=kwargs["poll_code"], status=1)
+        self.token = None
+        self.voted_polls = request.session.get('voted_polls', [])
+        """Missing token"""
+        if self.poll.auth and not kwargs.get("token", None):
+            return HttpResponse(render_to_string("website/error.html", {"msg": error_messages["missing_token"]}))
+        """Token used"""
+        if kwargs.get("token", None) and self.poll.auth:
+            self.token = get_object_or_404(self.poll.tokens, code=kwargs.get("token", None))
+            if self.token.voted and self.check_token:
+                return HttpResponse(render_to_string("website/error.html", {"msg": error_messages["token_used"]}))
+        if self.poll.code in self.voted_polls and self.check_token and not self.poll.auth:
+            return HttpResponse(render_to_string("website/error.html", {"msg": error_messages["already_voted"]}))
+        return super(ViewPermissions, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(ViewPermissions, self).get_context_data(**kwargs)
+        context["token"] = self.token
+        context["poll"] = self.poll
+        return context
+
+
+class PollStartView(ViewPermissions, TemplateView):
+    template_name = "website/start.html"
+
+
+class PollVoteView(ViewPermissions, FormView):
+    template_name = 'website/poll.html'
+
+    def get_form_class(self):
+        questions_count = self.poll.questions.count()
+        self.QuestionFormset = forms.formset_factory(SingleChoiceForm, BaseQuestionFormset, extra=questions_count, validate_max=True, validate_min=True, min_num=questions_count,
+                                                     max_num=questions_count)
+        return self.QuestionFormset
+
+    def get_form(self, form_class=None):
+
+        form_class = self.get_form_class()
+        form_kwargs = self.get_form_kwargs()
+        form_kwargs["form_kwargs"] = {"questions": self.poll.questions.all()}
+        return form_class(**form_kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(PollVoteView, self).get_context_data(**kwargs)
+        context["formset"] = self.get_form()
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        form_id = uuid.uuid4()
+        with transaction.atomic():
+            for index, field in enumerate(context["formset"].cleaned_data):
+                if isinstance(field['choice'], type([])):
+                    Vote(value=', '.join(field['choice']), form_id=form_id, question=self.poll.questions.all()[index], poll=self.poll).save()
+                else:
+                    Vote(value=field['choice'], form_id=form_id, question=self.poll.questions.all()[index], poll=self.poll).save()
+
+            next_values = {"poll_code": self.poll.code}
+            self.voted_polls.append(self.poll.code)
+            self.request.session["voted_polls"] = self.voted_polls
+            if self.token:
+                next_values.update({"token": self.token})
+                self.token.voted = True
+                self.token.save(update_fields=["voted"])
+
+        return HttpResponseRedirect(reverse("poll_end", kwargs=next_values))
+
+
+class PollEndView(ViewPermissions, TemplateView):
+    template_name = "website/end.html"
+    check_token = False
+
+
+class PollErrorView(TemplateView):
+    template_name = "website/error.html"
+
+
+class FAQView(TemplateView):
+    template_name = 'website/faq.html'
+
+
+class IndexView(TemplateView):
+    template_name = 'website/index.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(IndexView, self).get_context_data(**kwargs)
+        context["polls"] = Poll.objects.filter(status=1, auth=0, list_status=1)
+        return context
+
+
+class BaseResults(TemplateView):
+    def dispatch(self, request, *args, **kwargs):
+        self.table = []
+        self.poll = Poll.objects.prefetch_related('questions', 'questions__choices', 'questions__votes', 'allowed_users', 'allowed_groups').get(id=kwargs["object_id"])
+        self.questions = self.poll.questions.all()
+        if not (self.poll.created_by == request.user or request.user in self.poll.allowed_users.all() or request.user.id in self.poll.allowed_groups.values_list('user__id',
+                                                                                                                                                                 flat=True)):
+            raise PermissionDenied()
+        form_ids = list(self.poll.votes.values_list('form_id', 'created_at').distinct('form_id'))
+        form_ids.sort(key=lambda k: k[1], reverse=True)
+        for form_id in form_ids:
+            row = [timezone.localtime(form_id[1])]
+            for question in self.poll.questions.all():
+                try:
+                    vote = question.votes.filter(form_id=form_id[0]).values('value')[0]['value']
+                    if vote == '':
+                        raise IndexError
+                    if question.type == "MultiScale":
+                        for v in vote.split(', '):
+                            row.append(v)
                     else:
-                        Vote(value=field['choice'], form_id=form_id, question=poll.questions.all()[index], poll=poll).save()
-
-                next_values = {"poll_code": poll.code}
-                voted_polls.append(poll.code)
-                request.session["voted_polls"] = voted_polls
-                if token_obj:
-                    next_values.update({"token": token})
-                    token_obj.voted = True
-                    token_obj.save(update_fields=["voted"])
-            return HttpResponseRedirect(reverse("poll_end", kwargs=next_values))
-    else:
-        formset = QuestionFormset(form_kwargs={"questions": poll.questions.all()})
-
-    return render(request, 'website/poll.html', {'formset': formset, 'poll': poll})
-
-
-def poll_end(request, poll_code, token=None):
-    poll = get_object_or_404(Poll.objects.select_related('created_by'), code=poll_code, status=1)
-    token_obj = None
-    """Brak tokenu"""
-    if poll.auth and not token:
-        raise PermissionDenied
-    return render(request, 'website/end.html', {'poll': poll})
-
-
-def faq_view(request):
-    return render(request, 'website/faq.html')
-
-
-def index(request):
-    return render(request, 'website/index.html', {"polls": Poll.objects.filter(status=1, auth=0, list_status=1)})
-
-
-def results(request, object_id):
-    table = []
-    poll = Poll.objects.prefetch_related('questions', 'questions__choices', 'questions__votes', 'allowed_users', 'allowed_groups').get(id=object_id)
-    if not (poll.created_by == request.user or request.user in poll.allowed_users.all() or request.user.id in poll.allowed_groups.values_list('user__id', flat=True)):
-        raise PermissionDenied()
-    form_ids = list(poll.votes.values_list('form_id', 'created_at').distinct('form_id'))
-    form_ids.sort(key=lambda k: k[1], reverse=True)
-    for form_id in form_ids:
-        row = [timezone.localtime(form_id[1])]
-        for question in poll.questions.all():
-            try:
-                vote = question.votes.filter(form_id=form_id[0]).values('value')[0]['value']
-                if vote == '':
-                    raise IndexError
-                if question.type == "MultiScale":
-                    for v in vote.split(', '):
-                        row.append(v)
-                else:
-                    row.append(vote)
-            except IndexError:
-                print question.type
-                if question.type == "MultiScale":
-                    for v in question.choices.all():
+                        row.append(vote)
+                except IndexError:
+                    print question.type
+                    if question.type == "MultiScale":
+                        for v in question.choices.all():
+                            row.append(' ')
+                    else:
                         row.append(' ')
-                else:
-                    row.append(' ')
 
-        table.append(row)
-
-    return {"table": table, "questions": poll.questions.all(), "poll": poll}
+            self.table.append(row)
+        return super(BaseResults, self).dispatch(request, *args, **kwargs)
 
 
-def get_results(request, object_id):
-    return JsonResponse({"html": render_to_string('website/result_table.html', results(request, object_id))})
+class PollResultsView(BaseResults):
+    def get(self, request, *args, **kwargs):
+        return JsonResponse({"html": render_to_string('website/result_table.html', {"poll": self.poll, "questions": self.questions, "table": self.table})})
 
 
-def datetime_from_utc_to_local(utc_datetime):
-    now_timestamp = time.time()
-    offset = datetime.datetime.fromtimestamp(now_timestamp) - datetime.datetime.utcfromtimestamp(now_timestamp)
-    return utc_datetime + offset
-
-
-def get_results_excel(request, object_id):
-    results_dict = results(request, object_id)
-    workbook = xlwt.Workbook()
-    fname = slugify(results_dict['poll'].title[:30])
-    sheet = workbook.add_sheet(fname)
-    cell = 1
-    row = 0
-    sheet.write(row, 0, 'Data')
-    locale.setlocale(locale.LC_ALL, "")
-    for question in results_dict['questions']:
-        if question.type == u"MultiScale":
-            for choice in question.choices.all():
-                sheet.write(row, cell, choice.title)
-                cell += 1
-        else:
-            sheet.write(row, cell, question.title)
-            cell += 1
-    row = 1
-    for r in results_dict['table']:
-        cell = 0
-        for c in r:
-            if cell == 0:
-                c = datetime_from_utc_to_local(c).strftime(u'%d-%m-%y %H:%M')
-            if c.isdigit():
-                sheet.write(row, cell, int(c))
+class ExcelResultsView(BaseResults):
+    def get(self, request, *args, **kwargs):
+        workbook = xlwt.Workbook()
+        fname = slugify(self.poll.title[:30])
+        sheet = workbook.add_sheet(fname)
+        cell = 1
+        row = 0
+        sheet.write(row, 0, 'Data')
+        locale.setlocale(locale.LC_ALL, "")
+        for question in self.questions:
+            if question.type == u"MultiScale":
+                for choice in question.choices.all():
+                    sheet.write(row, cell, choice.title)
+                    cell += 1
             else:
-                sheet.write(row, cell, c)
-            cell += 1
-        row += 1
-    response = HttpResponse(content_type="application/ms-excel")
-    response['Content-Disposition'] = 'attachment; filename=%s.xls' % fname
-    workbook.save(response)
-    return response
+                sheet.write(row, cell, question.title)
+                cell += 1
+        row = 1
+        for r in self.table:
+            cell = 0
+            for c in r:
+                if cell == 0:
+                    c = datetime_from_utc_to_local(c).strftime(u'%d-%m-%y %H:%M')
+                if c.isdigit():
+                    sheet.write(row, cell, int(c))
+                else:
+                    sheet.write(row, cell, c)
+                cell += 1
+            row += 1
+        response = HttpResponse(content_type="application/ms-excel")
+        response['Content-Disposition'] = 'attachment; filename=%s.xls' % fname
+        workbook.save(response)
+        return response
