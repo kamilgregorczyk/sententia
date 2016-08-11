@@ -21,5 +21,6 @@ DATABASES = {
     }
 }
 
+
 STATIC_ROOT = ''
 
