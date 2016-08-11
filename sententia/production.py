@@ -5,8 +5,8 @@ from base import *
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 DEBUG = False
-BASE_URL = 'https://sententia.uniqe15.usermd.net'
-ALLOWED_HOSTS = ['sententia.uniqe15.usermd.net']
+BASE_URL = 'https://sententiaup.pl'
+ALLOWED_HOSTS = ['sententiaup.pl', 'sententia.uniqe15.usermd.net']
 
 DATABASES = {
     'default': {
