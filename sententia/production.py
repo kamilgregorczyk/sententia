@@ -29,8 +29,8 @@ ADMINS = [('Kamil', 'gregorczyk@me.com')]
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'mail8.mydevil.net'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'sententia@uniqe15.usermd.net'
-EMAIL_HOST_PASSWORD = '#Qwemelly24'
+EMAIL_HOST_USER = 'admin@sententiaup.pl'
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
