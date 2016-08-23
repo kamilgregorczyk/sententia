@@ -24,7 +24,7 @@
                         {% for tab in tabs.fields %}
                             <li><a href="#tabs-{{ forloop.counter }}" id="for_tabs-{{ forloop.counter }}">{{ tab.name }}</a></li>
                             {% if forloop.last and adminform.form.instance.id %}
-                                <li><a href="#tabs-{{ forloop.counter|add:"1" }}" id="for_tabs-{{ forloop.counter|add:"1" }}">Wyniki</a></li>
+                                <li><a href="#tabs-{{ forloop.counter|add:"1" }}" id="for_tabs-{{ forloop.counter|add:"1" }}">Wyniki ({{ adminform.form.instance.get_results_count }})</a></li>
                             {% endif %}
                         {% endfor %}
                     </ul>

@@ -13,7 +13,7 @@ from nested_admin import NestedModelAdmin, NestedStackedInline
 from tabbed_admin import TabbedModelAdmin
 
 from poll.forms import PollAdminForm
-from poll.models import Poll, Question, Choice, Token
+from poll.models import Poll, Question, Choice, Token, get_code
 
 
 class ChoiceInline(NestedStackedInline):
@@ -46,9 +46,10 @@ class QuestionInline(NestedStackedInline):
 
 
 class PollAdmin(TabbedModelAdmin, NestedModelAdmin):
+    save_as = True
     inlines = [QuestionInline, TokenInline]
     form = PollAdminForm
-    list_display = ['title', 'absolute_link', '_status', '_list_status', '_auth', 'created_by']
+    list_display = ['title', 'get_results_count', 'absolute_link', '_status', '_list_status', '_auth', 'created_by']
     search_fields = ['title', 'absolute_link', 'created_by', 'description']
     tab_main = (
         (None, {
@@ -133,6 +134,12 @@ class PollAdmin(TabbedModelAdmin, NestedModelAdmin):
             obj.created_by = request.user
         obj.updated_by = request.user
         obj.updated_at = datetime.datetime.now()
+
+        if "_saveasnew" in request.POST:
+            obj.code = get_code(Poll)
+            obj.votes.all().delete()
+            obj.tokens.all().delete()
+
         return super(PollAdmin, self).save_model(request, obj, form, change)
 
     class Media:

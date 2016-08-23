@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.forms.widgets import Textarea
 
 from poll.fields import CustomRadioSelect, CustomCheckboxSelectMultiple, CustomInlineRadioSelect, ScaleField
-from poll.models import Poll, gen_code
+from poll.models import Poll, gen_code, get_code
 from poll.widgets import ScaleWidget
 
 
@@ -27,11 +27,7 @@ class PollAdminForm(forms.ModelForm):
             self.fields['code'].help_text = u'Adres ankiety: <a href="{0}{1}" target="_blank">{0}{1}</a>'.format(settings.BASE_URL,
                                                                                                                  reverse('poll', kwargs={"poll_code": self.instance.code}))
         else:
-            code = gen_code()
-            i = 0
-            while Poll.objects.filter(code=code).exists():
-                i += 1
-                code = gen_code() if i < 37 else gen_code(3 + (i / 37))
+            code = get_code(Poll)
             self.fields['code'].initial = code
             self.fields['code'].widget.attrs['readonly'] = True
             self.fields['code'].help_text = u'Adres ankiety: %s%s' % (settings.BASE_URL, reverse('poll', kwargs={"poll_code": code}))
@@ -104,7 +100,6 @@ class TextAreaForm(QuestionFormBase):
 
 class BaseQuestionFormset(forms.BaseFormSet):
     def __init__(self, *args, **kwargs):
-        print kwargs
         self.questions = kwargs['form_kwargs'].pop('questions')
         super(BaseQuestionFormset, self).__init__(*args, **kwargs)
 

@@ -27,6 +27,15 @@ def gen_code(len=3):
     return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(len))
 
 
+def get_code(cls, filter_params={}):
+    code = gen_code()
+    i = 0
+    while cls.objects.filter(**filter_params).filter(code=code).exists():
+        i += 1
+        code = gen_code() if i < 37 else gen_code(3 + (i / 37))
+    return code
+
+
 class Poll(BaseModel):
     STATUS_CHOICES = (
         (0, u'Ukryta'),
@@ -39,27 +48,19 @@ class Poll(BaseModel):
 
     title = models.CharField(u"Tytuł", max_length=255)
     description = models.TextField(u"Opis", blank=True, null=True)
-    code = models.CharField(u"Klucz", max_length=255, unique=True, db_index=True)
+    code = models.CharField(u"Klucz", max_length=255, db_index=True)
     status = models.IntegerField(u"Status", choices=STATUS_CHOICES, default=0)
     list_status = models.IntegerField(u"Widoczna na stronie głównej", choices=STATUS_CHOICES, default=0)
     auth = models.IntegerField(u"Typ autoryzacji", choices=AUTH_CHOICES, default=0)
-    max_replies = models.IntegerField(u"Maksymalna liczba odpowiedzi", null=True, blank=True, help_text=u"Zostaw puste jeżeli ma być nieograniczona")
     allowed_users = models.ManyToManyField(User, verbose_name=u"Osoby które mogą zobaczyć i edytować ankietę", blank=True)
     allowed_groups = models.ManyToManyField(Group, verbose_name=u"Grupy które mogą zobaczyć i edytować ankietę", blank=True)
-
-
-
 
     def __unicode__(self):
         return self.title
 
     def save(self, *args, **kwargs):
         if not self.code:
-            self.code = gen_code()
-            i = 0
-            while Poll.objects.filter(code=self.code).exists():
-                i += 1
-                self.code = gen_code() if i < 37 else gen_code(3 + (i / 37))
+            self.code = get_code(Poll)
         return super(Poll, self).save(*args, **kwargs)
 
     class Meta:
@@ -70,6 +71,11 @@ class Poll(BaseModel):
     def get_absolute_url(self):
         return reverse("poll", kwargs={"poll_code": self.code})
 
+    def get_results_count(self):
+        return self.votes.all().values_list('form_id').distinct().count()
+
+    get_results_count.short_description = u"Wypełnień"
+
 
 class Token(models.Model):
     poll = models.ForeignKey(Poll, related_name="tokens")
@@ -78,11 +84,7 @@ class Token(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.code:
-            self.code = gen_code()
-            i = 0
-            while Token.objects.filter(poll=self.poll, code=self.code).exists():
-                i += 1
-                self.code = gen_code() if i < 37 else gen_code(3 + (i / 37))
+            self.code = get_code(Token, {"poll": self.poll})
         return super(Token, self).save(*args, **kwargs)
 
     def __unicode__(self):

@@ -21,6 +21,8 @@ var select_tab = function (tab_id) {
     $('#tabs ul li a[href^=' + tab_id.replace(/([ #;?%&,.+*~\':"!^$[\]()=>|\/@])/g, '\\$1') + ']').addClass('ui-state-active')
 };
 $(function () {
+    $('[name=_saveasnew]').text('Klonuj ankietę').attr("value", "Klonuj ankietę");
+
     $('#tabs > ul a').click(function () {
         select_tab($(this).attr('href'))
 
