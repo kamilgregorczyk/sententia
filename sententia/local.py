@@ -13,7 +13,7 @@ DATABASES = {
         'NAME': 'sententia',
         'PASSWORD': 'online13',
         'HOST': 'localhost',
-        'PORT': '5432',
+        'PORT': '5433',
         'OPTIONS': {
             'isolation_level': psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE,
         },

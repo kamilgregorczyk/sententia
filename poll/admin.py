@@ -12,7 +12,7 @@ from django.utils.safestring import mark_safe
 from nested_admin import NestedModelAdmin, NestedStackedInline
 from tabbed_admin import TabbedModelAdmin
 
-from poll.forms import PollAdminForm
+from poll.forms import PollAdminForm, TokenInlineForm, TokenFormset
 from poll.models import Poll, Question, Choice, Token, get_code
 
 
@@ -25,6 +25,8 @@ class ChoiceInline(NestedStackedInline):
 
 class TokenInline(admin.TabularInline):
     model = Token
+    form = TokenInlineForm
+    formset = TokenFormset
     extra = 0
     inlines = []
     readonly_fields = ['voted', 'link']
@@ -34,6 +36,11 @@ class TokenInline(admin.TabularInline):
         return mark_safe('<a href="{0}{1}" target="_blank">{0}{1}</a>'.format(settings.BASE_URL, reverse('poll', kwargs={"poll_code": obj.poll.code, "token": obj.code})))
 
     link.short_description = u"Link"
+
+    def get_form(self, request, obj=None, **kwargs):
+        formset = super(TokenInline, self).get_form(request, obj, **kwargs)
+        formset.saveasnew = True
+        return formset
 
 
 class QuestionInline(NestedStackedInline):
@@ -103,6 +110,7 @@ class PollAdmin(TabbedModelAdmin, NestedModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         form = super(PollAdmin, self).get_form(request, obj, **kwargs)
         form.current_user = request.user
+        form.saveasnew = request.POST.get('_saveasnew', False)
         return form
 
     def get_tabs(self, request, obj=None):

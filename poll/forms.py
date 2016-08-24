@@ -2,12 +2,14 @@
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission, User
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.db.models import Q
+from django.forms.utils import ErrorDict
 from django.forms.widgets import Textarea
 
 from poll.fields import CustomRadioSelect, CustomCheckboxSelectMultiple, CustomInlineRadioSelect, ScaleField
-from poll.models import Poll, gen_code, get_code
+from poll.models import Poll, gen_code, get_code, Token
 from poll.widgets import ScaleWidget
 
 
@@ -32,9 +34,30 @@ class PollAdminForm(forms.ModelForm):
             self.fields['code'].widget.attrs['readonly'] = True
             self.fields['code'].help_text = u'Adres ankiety: %s%s' % (settings.BASE_URL, reverse('poll', kwargs={"poll_code": code}))
 
+    def add_error(self, field, error):
+        if self.saveasnew and field is None and "code" not in error.error_dict:
+            return super(PollAdminForm, self).add_error(field, error)
+
     class Meta:
         model = Poll
         fields = '__all__'
+
+
+class TokenInlineForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(TokenInlineForm, self).__init__(*args, **kwargs)
+
+    def add_error(self, field, error):
+        if self.saveasnew and field is None and "code" not in error.error_dict:
+            return super(TokenInlineForm, self).add_error(field, error)
+
+    class Meta:
+        model = Token
+        fields = "__all__"
+
+
+class TokenFormset(forms.BaseModelFormSet):
+    model = Token
 
 
 class QuestionFormBase(forms.Form):

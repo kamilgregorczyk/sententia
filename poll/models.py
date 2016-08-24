@@ -48,7 +48,7 @@ class Poll(BaseModel):
 
     title = models.CharField(u"Tytuł", max_length=255)
     description = models.TextField(u"Opis", blank=True, null=True)
-    code = models.CharField(u"Klucz", max_length=255, db_index=True)
+    code = models.CharField(u"Klucz", max_length=255, db_index=True, unique=True)
     status = models.IntegerField(u"Status", choices=STATUS_CHOICES, default=0)
     list_status = models.IntegerField(u"Widoczna na stronie głównej", choices=STATUS_CHOICES, default=0)
     auth = models.IntegerField(u"Typ autoryzacji", choices=AUTH_CHOICES, default=0)
