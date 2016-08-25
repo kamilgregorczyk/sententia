@@ -56,10 +56,6 @@ class TokenInlineForm(forms.ModelForm):
         fields = "__all__"
 
 
-class TokenFormset(forms.BaseModelFormSet):
-    model = Token
-
-
 class QuestionFormBase(forms.Form):
     def __init__(self, *args, **kwargs):
         self.question = kwargs.pop('question')

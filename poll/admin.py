@@ -12,7 +12,7 @@ from django.utils.safestring import mark_safe
 from nested_admin import NestedModelAdmin, NestedStackedInline
 from tabbed_admin import TabbedModelAdmin
 
-from poll.forms import PollAdminForm, TokenInlineForm, TokenFormset
+from poll.forms import PollAdminForm, TokenInlineForm
 from poll.models import Poll, Question, Choice, Token, get_code
 
 
@@ -26,7 +26,6 @@ class ChoiceInline(NestedStackedInline):
 class TokenInline(admin.TabularInline):
     model = Token
     form = TokenInlineForm
-    formset = TokenFormset
     extra = 0
     inlines = []
     readonly_fields = ['voted', 'link']
@@ -37,9 +36,9 @@ class TokenInline(admin.TabularInline):
 
     link.short_description = u"Link"
 
-    def get_form(self, request, obj=None, **kwargs):
-        formset = super(TokenInline, self).get_form(request, obj, **kwargs)
-        formset.saveasnew = True
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super(TokenInline, self).get_formset(request, obj, **kwargs)
+        formset.form.saveasnew = request.POST.get('_saveasnew', False)
         return formset
 
 
@@ -136,6 +135,11 @@ class PollAdmin(TabbedModelAdmin, NestedModelAdmin):
 
     def get_queryset(self, request):
         return super(PollAdmin, self).get_queryset(request).filter(Q(created_by=request.user) | Q(allowed_users=request.user) | Q(allowed_groups__user=request.user)).distinct()
+
+    def save_related(self, request, form, formsets, change):
+        if "_saveasnew" in request.POST:
+            formsets.remove(filter(lambda x: x.__class__.__name__ == "TokenFormFormSet", formsets)[0])
+        return super(PollAdmin, self).save_related(request, form, formsets, change)
 
     def save_model(self, request, obj, form, change):
         if not obj.id:
