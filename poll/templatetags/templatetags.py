@@ -1,6 +1,7 @@
 from collections import Counter
 
 from django import template
+from django.template.defaultfilters import slugify
 
 register = template.Library()
 
@@ -36,6 +37,11 @@ def median(array):
 @register.filter
 def total_avg(array):
     return avg([avg(l) for l in array])
+
+
+@register.filter
+def slug(title):
+    return slugify(title)
 
 
 @register.filter
