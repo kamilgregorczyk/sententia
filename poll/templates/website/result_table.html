@@ -24,3 +24,47 @@
     {% endfor %}
     </tbody>
 </table>
+
+<div class="stats">
+    {% for question in questions %}
+        {% if question.votes %}
+            <div class="row">
+                <div class="col-sm-12">
+                    <h2>{{ question.title }}
+                        <small style="font-weight:300;">({{ question.votes.count }} odpowiedzi)</small>
+                    </h2>
+                </div>
+                {% if question.type == "MultiScale" %}
+                    <div class="col-sm-12">
+                        {% with question.multiscale_results as multiscale_results %}
+                            <h3>Średnia ogólna: {{ multiscale_results|total_avg|floatformat:2 }}</h3>
+                            {% for choice in question.choices.all %}
+                                <div class="row">
+                                    <div class="col-sm-12"><h3>{{ choice.title }}</h3></div>
+                                    {% with multiscale_results|get:forloop.counter0 as result %}
+                                        <div class="col-sm-6">
+                                            <p>Średnia: <strong>{{ result|avg|floatformat:2 }}</strong></p>
+                                            <p>Dominanta: <strong>{{ result|mode }}</strong></p>
+                                            <p>Mediana: <strong>{{ result|median }}</strong></p>
+                                        </div>
+                                        <div class="col-sm-6">dsaa</div>
+
+
+                                    {% endwith %}
+                                </div>
+                            {% endfor %}
+                        {% endwith %}
+                    </div>
+                {% else %}
+                    <div class="col-sm-6">
+                        <p>Średnia: <strong>{{ question.avg|floatformat:2 }}</strong></p>
+                        <p>Dominanta: <strong>{{ question.mode }}</strong></p>
+                        <p>Mediana: <strong>{{ question.median }}</strong></p>
+                    </div>
+                    <div class="col-sm-6">Wykres</div>
+                {% endif %}
+            </div>
+            <hr>
+        {% endif %}
+    {% endfor %}
+</div>

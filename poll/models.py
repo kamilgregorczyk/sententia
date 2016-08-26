@@ -1,14 +1,15 @@
 # coding=utf-8
-from __future__ import print_function
 from __future__ import unicode_literals
 
 import datetime
 import random
 import string
+from collections import Counter
 
 from django.contrib.auth.models import User, Group
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.db.models import Avg
 from django.utils import timezone
 
 
@@ -117,6 +118,29 @@ class Question(models.Model):
         ordering = ['order']
         verbose_name = u'Pytanie'
         verbose_name_plural = u'Pytania'
+
+    def mode(self):
+        values = self.votes.values_list('value', flat=True)
+        return Counter(values).most_common(1)[0][0]
+
+    def avg(self):
+        try:
+            values = self.votes.values_list('value', flat=True)
+            values = map(int, values)
+            return sum(values) / float(len(values))
+        except ValueError:
+            return 0.0
+
+    def median(self):
+        values = self.votes.values_list('value', flat=True)
+        return sorted(values)[len(values) // 2]
+
+    def multiscale_results(self):
+        values = self.votes.values_list('value', flat=True)
+        values = map(lambda x: x.split(', '), values)
+        values = [map(int, i) for i in values]
+
+        return zip(*values)
 
 
 def get_now():

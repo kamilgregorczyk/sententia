@@ -155,8 +155,8 @@ class PollAdmin(TabbedModelAdmin, NestedModelAdmin):
         return super(PollAdmin, self).save_model(request, obj, form, change)
 
     class Media:
-        css = {'all': ['poll/css/admin.css', 'poll/css/select2.min.css', 'website/css/font-awesome.min.css']}
-        js = ['admin/js/jquery.js', 'poll/js/admin.js', 'poll/js/select2.full.min.js', 'website/js/clipboard.min.js']
+        css = {'all': ['poll/css/admin.css', 'poll/css/select2.min.css', 'website/css/font-awesome.min.css', 'poll/css/grid12.css']}
+        js = ['admin/js/jquery.js', 'poll/js/admin.js', 'poll/js/select2.full.min.js', 'website/js/clipboard.min.js', 'poll/js/chart.min.js']
 
 
 admin.site.register(Poll, PollAdmin)

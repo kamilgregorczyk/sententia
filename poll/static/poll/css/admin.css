@@ -215,3 +215,7 @@ div[id^=tabs-] {
 #tabs-1 {
     display: block;
 }
+
+.deletelink {
+    box-sizing: content-box;
+}
