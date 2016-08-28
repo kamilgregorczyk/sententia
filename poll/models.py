@@ -142,6 +142,10 @@ class Question(models.Model):
 
         return zip(*values)
 
+    def arrayToDataTable(self):
+        values = self.votes.values_list('value', flat=True)
+        return Counter(values).items()
+
 
 def get_now():
     return timezone.localtime(timezone.now())
@@ -166,6 +170,7 @@ class Choice(models.Model):
     order = models.PositiveIntegerField(default=0)
     question_type = models.ForeignKey(Question, null=True, blank=True, related_name="choices")
     title = models.CharField(u"Wybór", max_length=255)
+
 
     class Meta:
         verbose_name = u'Odpowiedźi'

@@ -27,7 +27,7 @@
 
 <div class="inline-group stats">
     {% for question in questions %}
-        {% if question.votes %}
+        {% if question.votes and  not question.type == "TextArea" %}
             <div class="row">
                 <div class="col-sm-12">
                     <h2>{{ question.title }}
@@ -42,28 +42,32 @@
                                 <div class="row">
                                     <div class="col-sm-12"><h3>{{ choice.title }}</h3></div>
                                     {% with multiscale_results|get:forloop.counter0 as result %}
-                                        <div class="col-sm-6">
-                                            <p>Średnia: <strong>{{ result|avg|floatformat:2 }}</strong></p>
-                                            <p>Dominanta: <strong>{{ result|mode }}</strong></p>
-                                            <p>Mediana: <strong>{{ result|median }}</strong></p>
+                                        <div class="col-sm-12">
+                                            <div class="avg">
+                                                <p>Średnia: <strong>{{ result|avg|floatformat:2 }}</strong>
+                                                    Dominanta: <strong>{{ result|mode }}</strong>
+                                                    Mediana: <strong>{{ result|median }}</strong></p>
+
+                                            </div>
+                                            <div id="{{ choice|slug }}" class="graph" data-title="{{ choice.title }}"
+                                                 data-array='[["Wybór", "Wartosć"],{% for key, value in result|counter %}["{{ key }}", {{ value }}]{% if not forloop.last %}, {% endif %}{% endfor %}]'></div>
                                         </div>
-                                        <div class="col-sm-6">dsaa</div>
-
-
                                     {% endwith %}
                                 </div>
                             {% endfor %}
                         {% endwith %}
                     </div>
                 {% else %}
-                    <div class="col-sm-6">
-                        <p>Średnia: <strong>{{ question.avg|floatformat:2 }}</strong></p>
-                        <p>Dominanta: <strong>{{ question.mode }}</strong></p>
-                        <p>Mediana: <strong>{{ question.median }}</strong></p>
-                    </div>
-                    <div class="col-sm-6">
+                    <div class="col-sm-12">
 
-                    <div id="{{ question|slug }}" class="graph"></div>
+
+                        <div class="avg">
+                            <p>Średnia: <strong>{{ question.avg|floatformat:2 }}</strong>
+                                Dominanta: <strong>{{ question.mode }}</strong>
+                                Mediana: <strong>{{ question.median }}</strong></p>
+                        </div>
+                        <div id="{{ question|slug }}" class="graph" data-title="{{ question.title }}"
+                             data-array='[["Wybór", "Wartosć"],{% for key, value in question.arrayToDataTable %}["{{ key }}", {{ value }}]{% if not forloop.last %}, {% endif %}{% endfor %}]'></div>
                     </div>
                 {% endif %}
             </div>

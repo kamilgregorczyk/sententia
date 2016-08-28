@@ -35,14 +35,6 @@
                                 <div class="text-right">
                                     <a href="javascript:void(0)" class="btn btn-primary btn-token" data-clipboard-action="copy"
                                        data-clipboard-text="
-
-
-
-
-
-
-
-
                                                {% for token in adminform.form.instance.tokens.all %}{{ request.base_url }}{% url 'poll' poll_code=adminform.form.instance.id token=token %} &#10;{% endfor %}">
                                         <i class="fa fa-clipboard" aria-hidden="true"></i> Kopiuj adresy do schowka</a>
                                 </div>
@@ -78,20 +70,14 @@
                     var testowo = ''
                 </script>
                 <script type="text/javascript">
-                    google.charts.load('current', {'packages': ['corechart']});
-                    function drawChart(id) {
 
-                        var data = google.visualization.arrayToDataTable([
-                            ['Task', 'Hours per Day'],
-                            ['Work', 11],
-                            ['Eat', 2],
-                            ['Commute', 2],
-                            ['Watch TV', 2],
-                            ['Sleep', 7]
-                        ]);
+                    google.charts.load('current', {'packages': ['corechart']});
+                    function drawChart(id, title, array) {
+
+                        var data = google.visualization.arrayToDataTable(array);
 
                         var options = {
-                            title: 'My Daily Activities'
+                            title: title
                         };
 
                         var chart = new google.visualization.PieChart(document.getElementById(id));
@@ -109,7 +95,7 @@
                                 $('.to-replace').html(data.html);
                                 $('.overlay').hide();
                                 $('.graph').each(function (k, v) {
-                                    drawChart($(v).attr('id'))
+                                    drawChart($(v).attr('id'), $(v).attr('data-title'), $(v).data('array'))
                                 })
                             }
                         })
@@ -117,18 +103,27 @@
 
                     };
                     (function ($) {
-
-
-                        $(window).scrollTop()
-                        new Clipboard('.btn-token');
-                        {%if adminform.form.instance.id %}
+                        if (window.location.hash == "#tabs-5") {
+                            console.log('aqds');
                             setTimeout(function () {
                                 refresh_results();
-                            }, 200);
+                            }, 500);
+                        }
+
+                        $(window).scrollTop();
+                        new Clipboard('.btn-token');
+                        {%if adminform.form.instance.id %}
+
                             $('.btn-refresh').click(function (e) {
                                 e.preventDefault();
                                 refresh_results();
                             });
+                            $('[href=#tabs-5]').click(function () {
+                                if ($('.to-replace table').length == 0) {
+                                    refresh_results();
+                                }
+                            });
+
                         {% endif %}
                         // disable tabs marked as such in page_config
                         var enabled_tabs = [];

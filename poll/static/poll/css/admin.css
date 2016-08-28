@@ -109,6 +109,11 @@ canvas {
     background: #c20000 !important;
 }
 
+.graph {
+    width: 600px;
+    min-height: 400px;
+}
+
 #tabs > ul li a {
     color: white;
     border: 0;

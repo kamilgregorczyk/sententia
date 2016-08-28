@@ -45,6 +45,11 @@ def slug(title):
 
 
 @register.filter
+def counter(array):
+    return Counter(array).items()
+
+
+@register.filter
 def get(array, index):
     try:
         return array[index]
