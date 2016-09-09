@@ -19,36 +19,12 @@ It's a project for my Bachelor's degree so please do request any new features (y
 * [xlwt](http://xlwt.readthedocs.org/en/latest/)
 
 ### Manual
-1. Clone repo to your desired directory:
-```
-git clone https://github.com/kamilgregorczyk/sententia.git && cd sententia
-```
-2. Create a virtualenv for the project
-```
-mkvirtualenv sententia
-```
-3. Install the requirements
-```
-pip install -r requirements.txt
-```
-4. Update your database settings in a local settings file
-```
-nano sententia/local.py
-```
-5. Export path to local settings file
-```
-export DJANG_SETTINGS_MODULE=sententia.local
-```
-6. Create tables in your database (migrations)
-```
-./manage.py migrate
-```
-7. Create an account
-```
-./manage.py createsuperuser
-```
-8. Start a server on http://localhost:8000
-```
-./manage.py runserver
-```
+1. Clone repo to your desired directory: ```git clone https://github.com/kamilgregorczyk/sententia.git && cd sententia```
+2. Create a virtualenv for the project ```mkvirtualenv sententia```
+3. Install the requirements ```pip install -r requirements.txt```
+4. Update your database settings in a local settings file ```nano sententia/local.py```
+5. Export path to local settings file ```export DJANG_SETTINGS_MODULE=sententia.local```
+6. Create tables in your database (migrations) ```./manage.py migrate```
+7. Create an account ```./manage.py createsuperuser```
+8. Start a server on http://localhost:8000 ```./manage.py runserver```
 
