@@ -84,6 +84,7 @@
 
                         chart.draw(data, options);
                     }
+                    {% if adminform.form.instance.id %}
                     var refresh_results = function () {
                         $.ajax({
                             url: "{% url 'results' object_id=adminform.form.instance.id %}",
@@ -99,21 +100,21 @@
                                 })
                             }
                         })
-
+                    {% endif %}
 
                     };
                     (function ($) {
+                        
+
+                        $(window).scrollTop();
+                        new Clipboard('.btn-token');
+                        {% if adminform.form.instance.id %}
                         if (window.location.hash == "#tabs-5") {
                             console.log('aqds');
                             setTimeout(function () {
                                 refresh_results();
                             }, 500);
                         }
-
-                        $(window).scrollTop();
-                        new Clipboard('.btn-token');
-                        {%if adminform.form.instance.id %}
-
                             $('.btn-refresh').click(function (e) {
                                 e.preventDefault();
                                 refresh_results();
