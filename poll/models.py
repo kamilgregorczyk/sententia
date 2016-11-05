@@ -18,7 +18,8 @@ class BaseModel(models.Model):
     updated_by = models.ForeignKey(User, null=True, related_name='+', on_delete=models.SET_NULL, editable=False)
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
-    created_by = models.ForeignKey(User, null=True, related_name='+', on_delete=models.SET_NULL, editable=False, verbose_name=u"Autor")
+    created_by = models.ForeignKey(User, null=True, related_name='+', on_delete=models.SET_NULL, editable=False,
+                                   verbose_name=u"Autor")
 
     class Meta:
         abstract = True
@@ -53,8 +54,10 @@ class Poll(BaseModel):
     status = models.IntegerField(u"Status", choices=STATUS_CHOICES, default=0)
     list_status = models.IntegerField(u"Widoczna na stronie głównej", choices=STATUS_CHOICES, default=0)
     auth = models.IntegerField(u"Typ autoryzacji", choices=AUTH_CHOICES, default=0)
-    allowed_users = models.ManyToManyField(User, verbose_name=u"Osoby które mogą zobaczyć i edytować ankietę", blank=True)
-    allowed_groups = models.ManyToManyField(Group, verbose_name=u"Grupy które mogą zobaczyć i edytować ankietę", blank=True)
+    allowed_users = models.ManyToManyField(User, verbose_name=u"Osoby które mogą zobaczyć i edytować ankietę",
+                                           blank=True)
+    allowed_groups = models.ManyToManyField(Group, verbose_name=u"Grupy które mogą zobaczyć i edytować ankietę",
+                                            blank=True)
 
     def __unicode__(self):
         return self.title
@@ -128,7 +131,7 @@ class Question(models.Model):
             values = self.votes.values_list('value', flat=True)
             values = map(int, values)
             return sum(values) / float(len(values))
-        except ValueError:
+        except (ZeroDivisionError, ValueError):
             return 0.0
 
     def median(self):
@@ -170,7 +173,6 @@ class Choice(models.Model):
     order = models.PositiveIntegerField(default=0)
     question_type = models.ForeignKey(Question, null=True, blank=True, related_name="choices")
     title = models.CharField(u"Wybór", max_length=255)
-
 
     class Meta:
         verbose_name = u'Odpowiedźi'

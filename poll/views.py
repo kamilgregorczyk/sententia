@@ -156,7 +156,6 @@ class BaseResults(TemplateView):
                     else:
                         row.append(vote)
                 except IndexError:
-                    print question.type
                     if question.type == "MultiScale":
                         for v in question.choices.all():
                             row.append(' ')
