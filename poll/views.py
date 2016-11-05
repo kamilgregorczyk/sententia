@@ -1,7 +1,5 @@
 # coding=utf-8
-import datetime
 import locale
-import time
 import uuid
 
 import xlwt
@@ -23,7 +21,8 @@ from poll.helpers import datetime_from_utc_to_local
 from poll.models import Poll, Vote
 
 error_messages = {
-    "missing_token": u"""Ankieta jest zabezpieczona indywidualnymi linkami, możesz ją wypełnić tylko posiadając link z kluczem.""",
+    "missing_token": u"""Ankieta jest zabezpieczona indywidualnymi linkami, możesz ją wypełnić tylko posiadając
+    link z kluczem.""",
     "token_used": u"""Z tego linku już ktoś głosował w ankiecie i nie można użyć go ponownie.""",
     "already_voted": u"""Już oddałeś/aś głos w tej ankiecie, dziękujemy!""",
 }
@@ -33,7 +32,9 @@ class ViewPermissions(object):
     check_token = True
 
     def dispatch(self, request, *args, **kwargs):
-        self.poll = get_object_or_404(Poll.objects.select_related('created_by').prefetch_related('questions', 'tokens', 'questions__choices'), code=kwargs["poll_code"], status=1)
+        self.poll = get_object_or_404(
+            Poll.objects.select_related('created_by').prefetch_related('questions', 'tokens', 'questions__choices'),
+            code=kwargs["poll_code"], status=1)
         self.token = None
         self.voted_polls = request.session.get('voted_polls', [])
         self.error = False
@@ -74,7 +75,8 @@ class PollVoteView(ViewPermissions, FormView):
 
     def get_form_class(self):
         questions_count = self.poll.questions.count()
-        self.QuestionFormset = forms.formset_factory(SingleChoiceForm, BaseQuestionFormset, extra=questions_count, validate_max=True, validate_min=True, min_num=questions_count,
+        self.QuestionFormset = forms.formset_factory(SingleChoiceForm, BaseQuestionFormset, extra=questions_count,
+                                                     validate_max=True, validate_min=True, min_num=questions_count,
                                                      max_num=questions_count)
         return self.QuestionFormset
 
@@ -96,9 +98,11 @@ class PollVoteView(ViewPermissions, FormView):
         with transaction.atomic():
             for index, field in enumerate(context["formset"].cleaned_data):
                 if isinstance(field['choice'], type([])):
-                    Vote(value=', '.join(field['choice']), form_id=form_id, question=self.poll.questions.all()[index], poll=self.poll).save()
+                    Vote(value=', '.join(field['choice']), form_id=form_id, question=self.poll.questions.all()[index],
+                         poll=self.poll).save()
                 else:
-                    Vote(value=field['choice'], form_id=form_id, question=self.poll.questions.all()[index], poll=self.poll).save()
+                    Vote(value=field['choice'], form_id=form_id, question=self.poll.questions.all()[index],
+                         poll=self.poll).save()
 
             next_values = {"poll_code": self.poll.code}
             self.voted_polls.append(self.poll.code)
@@ -136,10 +140,13 @@ class IndexView(TemplateView):
 class BaseResults(TemplateView):
     def dispatch(self, request, *args, **kwargs):
         self.table = []
-        self.poll = Poll.objects.prefetch_related('questions', 'questions__choices', 'questions__votes', 'allowed_users', 'allowed_groups').get(id=kwargs["object_id"])
+        self.poll = Poll.objects.prefetch_related('questions', 'questions__choices', 'questions__votes',
+                                                  'allowed_users', 'allowed_groups').get(id=kwargs["object_id"])
         self.questions = self.poll.questions.all()
-        if not (self.poll.created_by == request.user or request.user in self.poll.allowed_users.all() or request.user.id in self.poll.allowed_groups.values_list('user__id',
-                                                                                                                                                                 flat=True)):
+        if not (self.poll.created_by == request.user
+                or request.user in self.poll.allowed_users.all()
+                or request.user.id in self.poll.allowed_groups.values_list('user__id', flat=True)
+                ):
             raise PermissionDenied()
         form_ids = list(self.poll.votes.values_list('form_id', 'created_at').distinct('form_id'))
         form_ids.sort(key=lambda k: k[1], reverse=True)
@@ -168,7 +175,9 @@ class BaseResults(TemplateView):
 
 class PollResultsView(BaseResults):
     def get(self, request, *args, **kwargs):
-        return JsonResponse({"html": render_to_string('website/result_table.html', {"poll": self.poll, "questions": self.questions, "table": self.table})})
+        return JsonResponse({"html": render_to_string('website/result_table.html',
+                                                      {"poll": self.poll, "questions": self.questions,
+                                                       "table": self.table})})
 
 
 class ExcelResultsView(BaseResults):

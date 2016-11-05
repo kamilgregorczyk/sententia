@@ -26,13 +26,15 @@ class PollAdminForm(forms.ModelForm):
             pass
         if self.instance.pk:
             self.fields['code'].widget.attrs['readonly'] = True
-            self.fields['code'].help_text = u'Adres ankiety: <a href="{0}{1}" target="_blank">{0}{1}</a>'.format(settings.BASE_URL,
-                                                                                                                 reverse('poll', kwargs={"poll_code": self.instance.code}))
+            self.fields['code'].help_text = u'Adres ankiety: <a href="{0}{1}" target="_blank">{0}{1}</a>'.format(
+                settings.BASE_URL,
+                reverse('poll', kwargs={"poll_code": self.instance.code}))
         else:
             code = get_code(Poll)
             self.fields['code'].initial = code
             self.fields['code'].widget.attrs['readonly'] = True
-            self.fields['code'].help_text = u'Adres ankiety: %s%s' % (settings.BASE_URL, reverse('poll', kwargs={"poll_code": code}))
+            self.fields['code'].help_text = u'Adres ankiety: %s%s' % (
+            settings.BASE_URL, reverse('poll', kwargs={"poll_code": code}))
 
     def add_error(self, field, error):
         if self.saveasnew and field is None and "code" not in error.error_dict:
@@ -74,19 +76,21 @@ class QuestionFormBase(forms.Form):
 class SingleChoiceForm(QuestionFormBase):
     def __init__(self, *args, **kwargs):
         super(SingleChoiceForm, self).__init__(*args, **kwargs)
-        self.fields['choice'] = forms.ChoiceField(choices=[(choice, choice) for choice in self.question.choices.values_list('title', flat=True)],
-                                                  widget=CustomRadioSelect,
-                                                  required=self.question.required,
-                                                  label=self.question.title)
+        self.fields['choice'] = forms.ChoiceField(
+            choices=[(choice, choice) for choice in self.question.choices.values_list('title', flat=True)],
+            widget=CustomRadioSelect,
+            required=self.question.required,
+            label=self.question.title)
 
 
 class MultiChoiceForm(QuestionFormBase):
     def __init__(self, *args, **kwargs):
         super(MultiChoiceForm, self).__init__(*args, **kwargs)
-        self.fields['choice'] = forms.MultipleChoiceField(choices=[(choice, choice) for choice in self.question.choices.values_list('title', flat=True)],
-                                                          widget=CustomCheckboxSelectMultiple,
-                                                          required=self.question.required,
-                                                          label=self.question.title)
+        self.fields['choice'] = forms.MultipleChoiceField(
+            choices=[(choice, choice) for choice in self.question.choices.values_list('title', flat=True)],
+            widget=CustomCheckboxSelectMultiple,
+            required=self.question.required,
+            label=self.question.title)
 
 
 class MultiScaleForm(QuestionFormBase):
@@ -94,7 +98,8 @@ class MultiScaleForm(QuestionFormBase):
         super(MultiScaleForm, self).__init__(*args, **kwargs)
         self.fields['choice'] = ScaleField(require_all_fields=self.question.required,
                                            label=self.question.title,
-                                           widget=ScaleWidget(attrs={"choices": self.question.choices.values_list('title', flat=True)}),
+                                           widget=ScaleWidget(attrs={
+                                               "choices": self.question.choices.values_list('title', flat=True)}),
                                            choices=self.question.choices.values_list('title', flat=True),
                                            help_text=u"5 oznacza najlepszą ocenę")
 
@@ -112,7 +117,8 @@ class ScaleForm(QuestionFormBase):
 class TextAreaForm(QuestionFormBase):
     def __init__(self, *args, **kwargs):
         super(TextAreaForm, self).__init__(*args, **kwargs)
-        self.fields['choice'] = forms.CharField(required=self.question.required, label=self.question.title, widget=Textarea)
+        self.fields['choice'] = forms.CharField(required=self.question.required, label=self.question.title,
+                                                widget=Textarea)
         self.fields['choice'].widget.attrs["class"] = "form-control"
         self.fields['choice'].widget.attrs["rows"] = "5"
 

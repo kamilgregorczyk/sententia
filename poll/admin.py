@@ -32,7 +32,8 @@ class TokenInline(admin.TabularInline):
     sortable_field_name = "order"
 
     def link(self, obj):
-        return mark_safe('<a href="{0}{1}" target="_blank">{0}{1}</a>'.format(settings.BASE_URL, reverse('poll', kwargs={"poll_code": obj.poll.code, "token": obj.code})))
+        link = reverse('poll', kwargs={"poll_code": obj.poll.code, "token": obj.code})
+        return mark_safe('<a href="{0}{1}" target="_blank">{0}{1}</a>'.format(settings.BASE_URL, link))
 
     link.short_description = u"Link"
 
@@ -127,14 +128,20 @@ class PollAdmin(TabbedModelAdmin, NestedModelAdmin):
         ]
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
-        poll = Poll.objects.prefetch_related('questions', 'questions__choices', 'questions__votes', 'allowed_users', 'allowed_groups').get(id=object_id)
-        if not (poll.created_by == request.user or request.user in poll.allowed_users.all() or request.user.id in poll.allowed_groups.values_list('user__id', flat=True)):
+        poll = Poll.objects.prefetch_related('questions', 'questions__choices', 'questions__votes', 'allowed_users',
+                                             'allowed_groups').get(id=object_id)
+        if not (poll.created_by == request.user
+                or request.user in poll.allowed_users.all()
+                or request.user.id in poll.allowed_groups.values_list('user__id', flat=True)
+                ):
             raise PermissionDenied()
         change_view = super(PollAdmin, self).change_view(request, object_id, form_url, extra_context)
         return change_view
 
     def get_queryset(self, request):
-        return super(PollAdmin, self).get_queryset(request).filter(Q(created_by=request.user) | Q(allowed_users=request.user) | Q(allowed_groups__user=request.user)).distinct()
+        return super(PollAdmin, self).get_queryset(request).filter(
+            Q(created_by=request.user) | Q(allowed_users=request.user) | Q(
+                allowed_groups__user=request.user)).distinct()
 
     def save_related(self, request, form, formsets, change):
         if "_saveasnew" in request.POST:
@@ -155,8 +162,10 @@ class PollAdmin(TabbedModelAdmin, NestedModelAdmin):
         return super(PollAdmin, self).save_model(request, obj, form, change)
 
     class Media:
-        css = {'all': ['poll/css/admin.css', 'poll/css/select2.min.css', 'website/css/font-awesome.min.css', 'poll/css/grid12.css']}
-        js = ['admin/js/jquery.js', 'poll/js/admin.js', 'poll/js/select2.full.min.js', 'website/js/clipboard.min.js', 'poll/js/loader.js']
+        css = {'all': ['poll/css/admin.css', 'poll/css/select2.min.css', 'website/css/font-awesome.min.css',
+                       'poll/css/grid12.css']}
+        js = ['admin/js/jquery.js', 'poll/js/admin.js', 'poll/js/select2.full.min.js', 'website/js/clipboard.min.js',
+              'poll/js/loader.js']
 
 
 admin.site.register(Poll, PollAdmin)
