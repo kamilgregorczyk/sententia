@@ -1,15 +1,16 @@
 # coding=utf-8
 from __future__ import unicode_literals
 
-import datetime
 import random
 import string
+import uuid
 from collections import Counter
+from threading import Thread
 
 from django.contrib.auth.models import User, Group
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.db.models import Avg
+from django.db import transaction
 from django.utils import timezone
 
 
@@ -77,6 +78,25 @@ class Poll(BaseModel):
 
     def get_results_count(self):
         return self.votes.all().values_list('form_id').distinct().count()
+
+    def _save_results(self, context, token):
+        form_id = uuid.uuid4()
+        with transaction.atomic():
+            for index, field in enumerate(context["formset"].cleaned_data):
+                if isinstance(field['choice'], type([])):
+                    Vote(value=', '.join(field['choice']), form_id=form_id, question=self.questions.all()[index],
+                         poll=self).save()
+                else:
+                    Vote(value=field['choice'], form_id=form_id, question=self.questions.all()[index],
+                         poll=self).save()
+
+            if token:
+                token.voted = True
+                token.save(update_fields=["voted"])
+
+    def save_results(self, context, token):
+        save_thread = Thread(target=self._save_results, args=(context,token,))
+        save_thread.start()
 
     get_results_count.short_description = u"Wypełnień"
 
