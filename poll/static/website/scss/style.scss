@@ -31,18 +31,18 @@ html, body {
   display: -ms-flexbox;
   display: -webkit-flex;
   display: flex;
+
 }
 
 .overlay {
-  display: none;
+  display:none;
   height: 100%;
   width: 100%;
   position: fixed;
   z-index: 100;
-  background: red;
 }
 
-.display-block {
+.display-block{
   display: block !important;;
 }
 
