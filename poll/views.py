@@ -95,14 +95,14 @@ class PollVoteView(ViewPermissions, FormView):
 
     def form_valid(self, form):
         context = self.get_context_data()
-        self.poll.save_results(context, self.token)
-
         next_values = {"poll_code": self.poll.code}
         self.voted_polls.append(self.poll.code)
         self.request.session["voted_polls"] = self.voted_polls
 
         if self.token:
             next_values.update({"token": self.token})
+
+        self.poll.save_results(context, self.token)
 
         return HttpResponseRedirect(reverse("poll_end", kwargs=next_values))
 

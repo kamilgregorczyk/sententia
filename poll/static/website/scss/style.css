@@ -23,6 +23,17 @@ html, body {
   display: -webkit-flex;
   display: flex; }
 
+.overlay {
+  display: none;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  z-index: 100;
+  background: red; }
+
+.display-block {
+  display: block !important; }
+
 .navbar .navbar-toggle {
   border: 2px solid #2979ff !important; }
   .navbar .navbar-toggle span {
