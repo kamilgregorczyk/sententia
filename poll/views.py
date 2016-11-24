@@ -1,25 +1,23 @@
 # coding=utf-8
 import locale
-import uuid
-from threading import Thread
 
 import xlwt
 from django import forms
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-from django.db import transaction
-from django.http.response import HttpResponseRedirect, Http404, JsonResponse, HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.http.response import HttpResponseRedirect, JsonResponse, HttpResponse
+from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import slugify
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import FormView
-from django.views.generic.base import TemplateView, View
+from django.views.generic.base import TemplateView
 
 from poll.forms import BaseQuestionFormset
 from poll.forms import SingleChoiceForm
 from poll.helpers import datetime_from_utc_to_local
-from poll.models import Poll, Vote
+from poll.models import Poll
 
 error_messages = {
     "missing_token": u"""Ankieta jest zabezpieczona indywidualnymi linkami, możesz ją wypełnić tylko posiadając
@@ -71,6 +69,7 @@ class PollStartView(ViewPermissions, TemplateView):
     template_name = "website/start.html"
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class PollVoteView(ViewPermissions, FormView):
     template_name = 'website/poll.html'
 
@@ -82,7 +81,6 @@ class PollVoteView(ViewPermissions, FormView):
         return self.QuestionFormset
 
     def get_form(self, form_class=None):
-
         form_class = self.get_form_class()
         form_kwargs = self.get_form_kwargs()
         form_kwargs["form_kwargs"] = {"questions": self.poll.questions.all()}
