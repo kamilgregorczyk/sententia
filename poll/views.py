@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import slugify
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import FormView
 from django.views.generic.base import TemplateView
