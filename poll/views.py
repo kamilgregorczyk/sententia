@@ -147,11 +147,15 @@ class BaseResults(TemplateView):
             raise PermissionDenied()
         form_ids = list(self.poll.votes.values_list('form_id', 'created_at').distinct('form_id'))
         form_ids.sort(key=lambda k: k[1], reverse=True)
+
+        all_votes = self.questions.values('votes__value', 'votes__form_id', 'id')
+
         for form_id in form_ids:
             row = [timezone.localtime(form_id[1])]
-            for question in self.poll.questions.all():
+            votes = filter(lambda d: d['votes__form_id'] == form_id[0], all_votes)
+            for question in self.questions:
                 try:
-                    vote = question.votes.filter(form_id=form_id[0]).values('value')[0]['value']
+                    vote = filter(lambda d: d['id'] == question.id, votes)[0]['votes__value']
                     if vote == '':
                         raise IndexError
                     if question.type == "MultiScale":
