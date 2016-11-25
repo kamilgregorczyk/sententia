@@ -95,8 +95,9 @@ class Poll(BaseModel):
                 token.save(update_fields=["voted"])
 
     def save_results(self, context, token):
-        save_thread = Thread(target=self._save_results, args=(context,token,))
-        save_thread.start()
+        # save_thread = Thread(target=self._save_results, args=(context, token,))
+        # save_thread.start()
+        self._save_results(context, token)
 
     get_results_count.short_description = u"Wypełnień"
 

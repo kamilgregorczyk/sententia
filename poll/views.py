@@ -70,7 +70,6 @@ class PollStartView(ViewPermissions, TemplateView):
     template_name = "website/start.html"
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class PollVoteView(ViewPermissions, FormView):
     template_name = 'website/poll.html'
 
