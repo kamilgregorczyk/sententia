@@ -73,7 +73,6 @@ class PollStartView(ViewPermissions, TemplateView):
 @method_decorator(csrf_exempt, name='dispatch')
 class PollVoteView(ViewPermissions, FormView):
     template_name = 'website/poll.html'
-    check_token = False
 
     def get_form_class(self):
         questions_count = self.poll.questions.count()
