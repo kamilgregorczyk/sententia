@@ -76,9 +76,15 @@ class PollVoteView(ViewPermissions, FormView):
 
     def get_form_class(self):
         questions_count = self.poll.questions.count()
-        self.QuestionFormset = forms.formset_factory(SingleChoiceForm, BaseQuestionFormset, extra=questions_count,
-                                                     validate_max=True, validate_min=True, min_num=questions_count,
-                                                     max_num=questions_count)
+        self.QuestionFormset = forms.formset_factory(
+            SingleChoiceForm,
+            BaseQuestionFormset,
+            extra=questions_count,
+            validate_max=True,
+            validate_min=True,
+            min_num=questions_count,
+            max_num=questions_count
+        )
         return self.QuestionFormset
 
     def get_form(self, form_class=None):
