@@ -40,7 +40,7 @@ SECURE_SSL_REDIRECT = True
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
+        'BACKEND': 'poll.memcached.LargeMemcachedCache',
         'LOCATION': '127.0.0.1:11223',
     }
 }
