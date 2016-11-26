@@ -6,7 +6,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 
 DEBUG = False
 BASE_URL = 'https://sententiaup.pl'
-ALLOWED_HOSTS = ['sententiaup.pl','www.sententiaup.pl', 'sententia.uniqe15.usermd.net']
+ALLOWED_HOSTS = ['sententiaup.pl', 'www.sententiaup.pl', 'sententia.uniqe15.usermd.net']
 
 DATABASES = {
     'default': {
@@ -38,3 +38,9 @@ CSRF_COOKIE_SECURE = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = True
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
+        'LOCATION': '127.0.0.1:11223',
+    }
+}
