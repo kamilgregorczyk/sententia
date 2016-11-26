@@ -8,6 +8,7 @@ from collections import Counter
 from threading import Thread
 
 from django.contrib.auth.models import User, Group
+from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db import transaction
@@ -93,6 +94,9 @@ class Poll(BaseModel):
             if token:
                 token.voted = True
                 token.save(update_fields=["voted"])
+        cache.delete(reverse('results', args=[self.id]))
+        cache.delete("%s:template" % reverse('results', args=[self.id]))
+        cache.delete("%s:template" % reverse('results_excel', args=[self.id]))
 
     def save_results(self, context, token):
         save_thread = Thread(target=self._save_results, args=(context, token,))

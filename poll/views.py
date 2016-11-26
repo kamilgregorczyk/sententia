@@ -3,6 +3,7 @@ import locale
 
 import xlwt
 from django import forms
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect, JsonResponse, HttpResponse
@@ -11,6 +12,7 @@ from django.template.defaultfilters import slugify
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import FormView
 from django.views.generic.base import TemplateView
@@ -26,6 +28,17 @@ error_messages = {
     "token_used": u"""Z tego linku już ktoś głosował w ankiecie i nie można użyć go ponownie.""",
     "already_voted": u"""Już oddałeś/aś głos w tej ankiecie, dziękujemy!""",
 }
+
+
+def CachedView(cache_time=60 * 60, prefix=None):
+    class CacheMixin(object):
+        @classmethod
+        def as_view(cls, **initkwargs):
+            return cache_page(cache_time)(
+                super(CacheMixin, cls).as_view(**initkwargs)
+            )
+
+    return CacheMixin
 
 
 class ViewPermissions(object):
@@ -121,7 +134,7 @@ class PollErrorView(TemplateView):
     template_name = "website/error.html"
 
 
-class FAQView(TemplateView):
+class FAQView(CachedView(60 * 60 * 24), TemplateView):
     template_name = 'website/faq.html'
 
 
@@ -135,16 +148,18 @@ class IndexView(TemplateView):
 
 
 class BaseResults(TemplateView):
-    def dispatch(self, request, *args, **kwargs):
-        self.table = []
+    def setup(self, object_id, user):
         self.poll = Poll.objects.prefetch_related('questions', 'questions__choices', 'questions__votes',
-                                                  'allowed_users', 'allowed_groups').get(id=kwargs["object_id"])
+                                                  'allowed_users', 'allowed_groups').get(id=object_id)
         self.questions = self.poll.questions.all()
-        if not (self.poll.created_by == request.user
-                or request.user in self.poll.allowed_users.all()
-                or request.user.id in self.poll.allowed_groups.values_list('user__id', flat=True)
+        if not (self.poll.created_by == user
+                or user in self.poll.allowed_users.all()
+                or user.id in self.poll.allowed_groups.values_list('user__id', flat=True)
                 ):
             raise PermissionDenied()
+
+    def get_results(self):
+        table = []
         form_ids = list(self.poll.votes.values_list('form_id', 'created_at').distinct('form_id'))
         form_ids.sort(key=lambda k: k[1], reverse=True)
 
@@ -170,15 +185,32 @@ class BaseResults(TemplateView):
                     else:
                         row.append(' ')
 
-            self.table.append(row)
+            table.append(row)
+
+        return table
+
+    def dispatch(self, request, *args, **kwargs):
+        self.setup(kwargs['object_id'], request.user)
+        if request.path in cache:
+            self.table = cache.get(request.path)
+        else:
+            self.table = self.get_results()
+            cache.set(request.path, self.table, None)
+
         return super(BaseResults, self).dispatch(request, *args, **kwargs)
 
 
 class PollResultsView(BaseResults):
     def get(self, request, *args, **kwargs):
-        return JsonResponse({"html": render_to_string('website/result_table.html',
-                                                      {"poll": self.poll, "questions": self.questions,
-                                                       "table": self.table})})
+        cache_key = "%s:template" % request.path
+        if cache_key in cache:
+            template = cache.get(cache_key)
+        else:
+            template = render_to_string('website/result_table.html',
+                                        {"poll": self.poll, "questions": self.questions, "table": self.table})
+            cache.set(cache_key, template, None)
+
+        return JsonResponse({"html": template})
 
 
 class ExcelResultsView(BaseResults):
