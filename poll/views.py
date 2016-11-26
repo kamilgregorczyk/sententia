@@ -191,11 +191,13 @@ class BaseResults(TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.setup(kwargs['object_id'], request.user)
-        if request.path in cache:
-            self.table = cache.get(request.path)
+        path = request.path
+        path = path.replace('/excel/', '/')
+        if path in cache:
+            self.table = cache.get(path)
         else:
             self.table = self.get_results()
-            cache.set(request.path, self.table, None)
+            cache.set(path, self.table, None)
 
         return super(BaseResults, self).dispatch(request, *args, **kwargs)
 

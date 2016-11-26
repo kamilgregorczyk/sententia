@@ -96,7 +96,6 @@ class Poll(BaseModel):
                 token.save(update_fields=["voted"])
         cache.delete(reverse('results', args=[self.id]))
         cache.delete("%s:template" % reverse('results', args=[self.id]))
-        cache.delete("%s:template" % reverse('results_excel', args=[self.id]))
 
     def save_results(self, context, token):
         save_thread = Thread(target=self._save_results, args=(context, token,))
