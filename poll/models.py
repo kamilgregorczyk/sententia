@@ -83,14 +83,11 @@ class Poll(BaseModel):
     def _save_results(self, context, token):
         form_id = uuid.uuid4()
         with transaction.atomic():
+            votes = []
             for index, field in enumerate(context["formset"].cleaned_data):
-                if isinstance(field['choice'], type([])):
-                    Vote(value=', '.join(field['choice']), form_id=form_id, question=self.questions.all()[index],
-                         poll=self).save()
-                else:
-                    Vote(value=field['choice'], form_id=form_id, question=self.questions.all()[index],
-                         poll=self).save()
-
+                value = ', '.join(field['choice']) if isinstance(field['choice'], type([])) else field['choice']
+                votes.append(Vote(value=value, form_id=form_id, question=self.questions.all()[index], poll=self))
+            Vote.objects.bulk_create(votes)
             if token:
                 token.voted = True
                 token.save(update_fields=["voted"])
