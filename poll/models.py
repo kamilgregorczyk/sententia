@@ -5,10 +5,8 @@ import random
 import string
 import uuid
 from collections import Counter
-from threading import Thread
 
 from django.contrib.auth.models import User, Group
-from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db import transaction
@@ -80,7 +78,7 @@ class Poll(BaseModel):
     def get_results_count(self):
         return self.votes.all().values_list('form_id').distinct().count()
 
-    def _save_results(self, context, token):
+    def save_results(self, context, token):
         form_id = uuid.uuid4()
         with transaction.atomic():
             votes = []
@@ -91,12 +89,6 @@ class Poll(BaseModel):
             if token:
                 token.voted = True
                 token.save(update_fields=["voted"])
-        cache.delete(reverse('results', args=[self.id]))
-        cache.delete("%s:template" % reverse('results', args=[self.id]))
-
-    def save_results(self, context, token):
-        save_thread = Thread(target=self._save_results, args=(context, token,))
-        save_thread.start()
 
     get_results_count.short_description = u"Wypełnień"
 
@@ -177,7 +169,7 @@ def get_now():
 class Vote(models.Model):
     question = models.ForeignKey(Question, related_name="votes")
     poll = models.ForeignKey(Poll, related_name="votes")
-    form_id = models.CharField(u"Kod", max_length=255)
+    form_id = models.CharField(u"Kod", max_length=255, db_index=True)
     value = models.CharField(u"Wartość", max_length=255)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
 

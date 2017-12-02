@@ -104,7 +104,7 @@ class PollAdmin(TabbedModelAdmin, NestedModelAdmin):
     def absolute_link(self, obj):
         return '<a href="{0}" target="_blank">{0}</a>'.format(obj.get_absolute_url())
 
-    absolute_link.short_description = u'Autoryzowana tokenami'
+    absolute_link.short_description = u'Link'
     absolute_link.allow_tags = True
 
     def get_form(self, request, obj=None, **kwargs):

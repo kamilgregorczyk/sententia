@@ -1,4 +1,4 @@
-{% load compress %}{% load staticfiles %}{% load widget_tweaks %}{% load cache %}<!DOCTYPE html>
+{% load compress %}{% load staticfiles %}{% load widget_tweaks %}<!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="utf-8"/>
@@ -33,31 +33,29 @@
 <div class="overlay"></div>
 {% block body_block %}
     <div class="main-wrapper">
-        {% cache 86400 navbar %}
-            <nav class="navbar navbar-default" role="navigation">
-                <div class="container">
-                    <div class="navbar-header">
-                        <button type="button" class="navbar-toggle" data-toggle="collapse"
-                                data-target="#bs-example-navbar-collapse-1">
-                            <span class="sr-only">Toggle navigation</span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                        </button>
-                        <a class="navbar-brand" href="/">
-                            <img src="{% static 'website/img/logo.svg' %}" alt="Sententia" class="img-responsive">
-                            <span class="block">Sententia</span>
-                        </a>
-                    </div>
-
-                    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                        <ul class="nav navbar-nav pull-right">
-                            <li><a href="{% url 'faq' %}" target="_blank">Czy ankieta jest anonimowa?</a></li>
-                        </ul>
-                    </div>
+        <nav class="navbar navbar-default" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse"
+                            data-target="#bs-example-navbar-collapse-1">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="/">
+                        <img src="{% static 'website/img/logo.svg' %}" alt="Sententia" class="img-responsive">
+                        <span class="block">Sententia</span>
+                    </a>
                 </div>
-            </nav>
-        {% endcache %}
+
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <ul class="nav navbar-nav pull-right">
+                        <li><a href="{% url 'faq' %}" target="_blank">Czy ankieta jest anonimowa?</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
         <div class="wrapper">
             <div class="main">
                 <div class="container" id="container">
@@ -65,26 +63,24 @@
                 </div>
             </div>
         </div>
-        {% cache 86400 footer %}
-            <footer>
-                <div class="container">
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <h6 class="white-text">
-                                UNIWERSYTET PEDAGOGICZNY<br>
-                                im. Komisji Edukacji Narodowej w Krakowie
-                            </h6>
-                        </div>
-                        <div class="col-sm-6">
-                            <h6 class="pull-right text-right white-text">
-                                <a href="mailto:gregorczyk@me.com" class="white-text"> KAMIL GREGORCZYK</a> <br>
-                                WMFT - Praca licencjacka 2016 r.
-                            </h6>
-                        </div>
+        <footer>
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <h6 class="white-text">
+                            UNIWERSYTET PEDAGOGICZNY<br>
+                            im. Komisji Edukacji Narodowej w Krakowie
+                        </h6>
+                    </div>
+                    <div class="col-sm-6">
+                        <h6 class="pull-right text-right white-text">
+                            <a href="mailto:gregorczyk@me.com" class="white-text"> KAMIL GREGORCZYK</a> <br>
+                            WMFT - Praca licencjacka 2016 r.
+                        </h6>
                     </div>
                 </div>
-            </footer>
-        {% endcache %}
+            </div>
+        </footer>
     </div>
 
 {% endblock %}

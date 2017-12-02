@@ -3,7 +3,6 @@ import locale
 
 import xlwt
 from django import forms
-from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect, JsonResponse, HttpResponse
@@ -12,7 +11,6 @@ from django.template.defaultfilters import slugify
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import FormView
 from django.views.generic.base import TemplateView
@@ -28,17 +26,6 @@ error_messages = {
     "token_used": u"""Z tego linku już ktoś głosował w ankiecie i nie można użyć go ponownie.""",
     "already_voted": u"""Już oddałeś/aś głos w tej ankiecie, dziękujemy!""",
 }
-
-
-def CachedView(cache_time=60 * 60, prefix=None):
-    class CacheMixin(object):
-        @classmethod
-        def as_view(cls, **initkwargs):
-            return cache_page(cache_time)(
-                super(CacheMixin, cls).as_view(**initkwargs)
-            )
-
-    return CacheMixin
 
 
 class ViewPermissions(object):
@@ -134,7 +121,7 @@ class PollErrorView(TemplateView):
     template_name = "website/error.html"
 
 
-class FAQView(CachedView(60 * 60 * 24), TemplateView):
+class FAQView(TemplateView):
     template_name = 'website/faq.html'
 
 
@@ -193,25 +180,14 @@ class BaseResults(TemplateView):
         self.setup(kwargs['object_id'], request.user)
         path = request.path
         path = path.replace('/excel/', '/')
-        if path in cache:
-            self.table = cache.get(path)
-        else:
-            self.table = self.get_results()
-            cache.set(path, self.table, None)
-
+        self.table = self.get_results()
         return super(BaseResults, self).dispatch(request, *args, **kwargs)
 
 
 class PollResultsView(BaseResults):
     def get(self, request, *args, **kwargs):
-        cache_key = "%s:template" % request.path
-        if cache_key in cache:
-            template = cache.get(cache_key)
-        else:
-            template = render_to_string('website/result_table.html',
-                                        {"poll": self.poll, "questions": self.questions, "table": self.table})
-            cache.set(cache_key, template, None)
-
+        template = render_to_string('website/result_table.html',
+                                    {"poll": self.poll, "questions": self.questions, "table": self.table})
         return JsonResponse({"html": template})
 
 

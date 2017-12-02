@@ -37,10 +37,3 @@ CSRF_COOKIE_SECURE = True
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = True
-
-CACHES = {
-    'default': {
-        'BACKEND': 'poll.memcached.LargeMemcachedCache',
-        'LOCATION': '127.0.0.1:11223',
-    }
-}

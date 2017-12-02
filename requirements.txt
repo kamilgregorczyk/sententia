@@ -1,5 +1,5 @@
 django==1.9.9
-psycopg2==2.6.2
+psycopg2
 xlwt==1.1.2
 django-extensions==1.6.1
 django-widget-tweaks==1.4.1
@@ -7,5 +7,3 @@ django-tabbed-admin==0.0.5
 django-admin-sortable==2.0.18
 django-nested-admin==3.0.8
 django-compressor==2.0
-django-pylibmc
-python-memcached==1.58
