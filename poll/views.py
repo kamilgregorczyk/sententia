@@ -1,9 +1,10 @@
-# coding=utf-8
 import locale
+from typing import List
 
 import xlwt
 from django import forms
 from django.core.exceptions import PermissionDenied
+from django.core.handlers.wsgi import WSGIRequest
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
@@ -17,8 +18,7 @@ from django.views.generic.base import TemplateView
 
 from poll.forms import BaseQuestionFormset
 from poll.forms import SingleChoiceForm
-from poll.helpers import datetime_from_utc_to_local
-from poll.models import Poll
+from poll.models import Poll, Question
 
 error_messages = {
     "missing_token": u"""Ankieta jest zabezpieczona indywidualnymi linkami, możesz ją wypełnić tylko posiadając
@@ -31,7 +31,7 @@ error_messages = {
 class ViewPermissions(object):
     check_token = True
 
-    def dispatch(self, request, *args, **kwargs):
+    def dispatch(self, request: WSGIRequest, *args, **kwargs):
         self.poll = get_object_or_404(
             Poll.objects.select_related('created_by').prefetch_related('questions', 'tokens', 'questions__choices'),
             code=kwargs["poll_code"], status=1)
@@ -135,29 +135,34 @@ class IndexView(TemplateView):
 
 
 class BaseResults(TemplateView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.poll: Poll = None
+        self.table: List = None
+        self.questions: List[Question] = None
+
     def setup(self, object_id, user):
         self.poll = Poll.objects.prefetch_related('questions', 'questions__choices', 'questions__votes',
                                                   'allowed_users', 'allowed_groups').get(id=object_id)
-        self.questions = self.poll.questions.all()
         if not (self.poll.created_by == user
                 or user in self.poll.allowed_users.all()
                 or user.id in self.poll.allowed_groups.values_list('user__id', flat=True)
                 ):
             raise PermissionDenied()
+        self.questions = list(self.poll.questions.all())
+        self.table = self.get_results()
 
-    def get_results(self):
+    def get_results(self) -> List:
         table = []
-        form_ids = list(self.poll.votes.values_list('form_id', 'created_at').distinct('form_id'))
-        form_ids.sort(key=lambda k: k[1], reverse=True)
-
-        all_votes = self.questions.values('votes__value', 'votes__form_id', 'id')
-
+        form_ids = self.poll.votes.values_list('form_id', 'created_at').distinct('form_id')
+        form_ids = sorted(form_ids, key=lambda form_id: form_id[1], reverse=True)
+        all_votes = self.poll.questions.values('votes__value', 'votes__form_id', 'id')
         for form_id in form_ids:
             row = [timezone.localtime(form_id[1])]
-            votes = filter(lambda d: d['votes__form_id'] == form_id[0], all_votes)
+            votes = list(filter(lambda votes_values: votes_values['votes__form_id'] == form_id[0], all_votes))
             for question in self.questions:
                 try:
-                    vote = filter(lambda d: d['id'] == question.id, votes)[0]['votes__value']
+                    vote = next(filter(lambda vote_values: vote_values['id'] == question.id, votes))['votes__value']
                     if vote == '':
                         raise IndexError
                     if question.type == "MultiScale":
@@ -178,9 +183,6 @@ class BaseResults(TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.setup(kwargs['object_id'], request.user)
-        path = request.path
-        path = path.replace('/excel/', '/')
-        self.table = self.get_results()
         return super(BaseResults, self).dispatch(request, *args, **kwargs)
 
 
@@ -213,7 +215,7 @@ class ExcelResultsView(BaseResults):
             cell = 0
             for c in r:
                 if cell == 0:
-                    c = datetime_from_utc_to_local(c).strftime(u'%d-%m-%y %H:%M')
+                    c = c.strftime(u'%d-%m-%y %H:%M')
                 if c.isdigit():
                     sheet.write(row, cell, int(c))
                 else:

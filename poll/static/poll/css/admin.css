@@ -1,4 +1,3 @@
-
 #tabs {
     background: transparent !important;
     border: 0;
@@ -62,6 +61,11 @@ canvas {
     cursor: pointer;
     display: inline-block;
 }
+
+.btn-excel {
+  background: #227346;
+}
+
 
 .relative {
     position: relative;

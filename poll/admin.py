@@ -1,7 +1,4 @@
-# coding=utf-8
 import datetime
-import json
-from random import randint
 
 from django.conf import settings
 from django.contrib import admin

@@ -1,8 +1,5 @@
-# coding=utf-8
 from __future__ import unicode_literals
 
-import random
-import string
 import uuid
 from collections import Counter
 
@@ -10,7 +7,9 @@ from django.contrib.auth.models import User, Group
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db import transaction
-from django.utils import timezone
+from typing import List, Tuple, ItemsView
+
+from poll.helpers import get_code
 
 
 class BaseModel(models.Model):
@@ -25,17 +24,22 @@ class BaseModel(models.Model):
         abstract = True
 
 
-def gen_code(len=3):
-    return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(len))
+class Token(models.Model):
+    poll = models.ForeignKey("Poll", related_name="tokens")
+    code = models.CharField(u"Kod", max_length=255, unique=True)
+    voted = models.BooleanField(u"Użyto?", default=False)
 
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = get_code(Token, {"poll": self.poll})
+        return super(Token, self).save(*args, **kwargs)
 
-def get_code(cls, filter_params={}):
-    code = gen_code()
-    i = 0
-    while cls.objects.filter(**filter_params).filter(code=code).exists():
-        i += 1
-        code = gen_code() if i < 1000 else gen_code(3 + (i / 1000))
-    return code
+    def __str__(self) -> str:
+        return u"%s" % self.code
+
+    class Meta:
+        verbose_name = u'Token'
+        verbose_name_plural = u'Tokeny'
 
 
 class Poll(BaseModel):
@@ -59,7 +63,7 @@ class Poll(BaseModel):
     allowed_groups = models.ManyToManyField(Group, verbose_name=u"Grupy które mogą zobaczyć i edytować ankietę",
                                             blank=True)
 
-    def __unicode__(self):
+    def __str__(self) -> str:
         return self.title
 
     def save(self, *args, **kwargs):
@@ -67,48 +71,30 @@ class Poll(BaseModel):
             self.code = get_code(Poll)
         return super(Poll, self).save(*args, **kwargs)
 
-    class Meta:
-        verbose_name = u'Ankieta'
-        verbose_name_plural = u'Ankiety'
-        ordering = ['status', '-created_at']
-
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse("poll", kwargs={"poll_code": self.code})
 
-    def get_results_count(self):
+    def get_results_count(self) -> int:
         return self.votes.all().values_list('form_id').distinct().count()
 
-    def save_results(self, context, token):
+    def save_results(self, context, token: Token):
         form_id = uuid.uuid4()
+        votes = []
+        for index, field in enumerate(context["formset"].cleaned_data):
+            value = ', '.join(field['choice']) if isinstance(field['choice'], type([])) else field['choice']
+            votes.append(Vote(value=value, form_id=form_id, question=self.questions.all()[index], poll=self))
         with transaction.atomic():
-            votes = []
-            for index, field in enumerate(context["formset"].cleaned_data):
-                value = ', '.join(field['choice']) if isinstance(field['choice'], type([])) else field['choice']
-                votes.append(Vote(value=value, form_id=form_id, question=self.questions.all()[index], poll=self))
             Vote.objects.bulk_create(votes)
             if token:
                 token.voted = True
                 token.save(update_fields=["voted"])
 
-    get_results_count.short_description = u"Wypełnień"
-
-
-class Token(models.Model):
-    poll = models.ForeignKey(Poll, related_name="tokens")
-    code = models.CharField(u"Kod", max_length=255, unique=True)
-    voted = models.BooleanField(u"Użyto?", default=False)
-
-    def save(self, *args, **kwargs):
-        if not self.code:
-            self.code = get_code(Token, {"poll": self.poll})
-        return super(Token, self).save(*args, **kwargs)
-
-    def __unicode__(self):
-        return u"%s" % self.code
-
     class Meta:
-        verbose_name = u'Token'
-        verbose_name_plural = u'Tokeny'
+        verbose_name = u'Ankieta'
+        verbose_name_plural = u'Ankiety'
+        ordering = ['status', '-created_at']
+
+    get_results_count.short_description = u"Wypełnień"
 
 
 class Question(models.Model):
@@ -126,7 +112,7 @@ class Question(models.Model):
     order = models.PositiveIntegerField(default=0)
     type = models.CharField(u"Typ pytania", choices=TYPE_CHOICES, max_length=255, default='singlechoice')
 
-    def __unicode__(self):
+    def __str__(self) -> str:
         return self.title
 
     class Meta:
@@ -134,36 +120,32 @@ class Question(models.Model):
         verbose_name = u'Pytanie'
         verbose_name_plural = u'Pytania'
 
-    def mode(self):
+    def mode(self) -> ItemsView:
         values = self.votes.values_list('value', flat=True)
         return Counter(values).most_common(1)[0][0]
 
-    def avg(self):
+    def avg(self) -> float:
         try:
             values = self.votes.values_list('value', flat=True)
-            values = map(int, values)
+            values = list(map(int, values))
             return sum(values) / float(len(values))
         except (ZeroDivisionError, ValueError):
             return 0.0
 
-    def median(self):
+    def median(self) -> float:
         values = self.votes.values_list('value', flat=True)
         return sorted(values)[len(values) // 2]
 
-    def multiscale_results(self):
+    def multiscale_results(self) -> List[Tuple[int]]:
         values = self.votes.values_list('value', flat=True)
         values = map(lambda x: x.split(', '), values)
         values = [map(int, i) for i in values]
 
-        return zip(*values)
+        return list(zip(*values))
 
-    def arrayToDataTable(self):
+    def arrayToDataTable(self) -> ItemsView:
         values = self.votes.values_list('value', flat=True)
         return Counter(values).items()
-
-
-def get_now():
-    return timezone.localtime(timezone.now())
 
 
 class Vote(models.Model):
@@ -177,7 +159,7 @@ class Vote(models.Model):
         verbose_name = u'Wybór'
         verbose_name_plural = u'Wybory'
 
-    def __unicode__(self):
+    def __str__(self) -> str:
         return self.value
 
 
@@ -187,9 +169,9 @@ class Choice(models.Model):
     title = models.CharField(u"Wybór", max_length=255)
 
     class Meta:
-        verbose_name = u'Odpowiedźi'
-        verbose_name_plural = u'Odpowiedźi'
+        verbose_name = u'Odpowiedzi'
+        verbose_name_plural = u'Odpowiedzi'
         ordering = ['order']
 
-    def __unicode__(self):
+    def __str__(self) -> str:
         return self.title

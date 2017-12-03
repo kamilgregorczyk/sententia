@@ -1,15 +1,12 @@
-# -*- coding: utf-8 -*-
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission, User
-from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.forms.utils import ErrorDict
 from django.forms.widgets import Textarea
 
 from poll.fields import CustomRadioSelect, CustomCheckboxSelectMultiple, CustomInlineRadioSelect, ScaleField
-from poll.models import Poll, gen_code, get_code, Token
+from poll.models import Poll, get_code, Token
 from poll.widgets import ScaleWidget
 
 
@@ -34,7 +31,7 @@ class PollAdminForm(forms.ModelForm):
             self.fields['code'].initial = code
             self.fields['code'].widget.attrs['readonly'] = True
             self.fields['code'].help_text = u'Adres ankiety: %s%s' % (
-            settings.BASE_URL, reverse('poll', kwargs={"poll_code": code}))
+                settings.BASE_URL, reverse('poll', kwargs={"poll_code": code}))
 
     def add_error(self, field, error):
         if self.saveasnew and field is None and "code" not in error.error_dict:
@@ -64,7 +61,7 @@ class QuestionFormBase(forms.Form):
         super(QuestionFormBase, self).__init__(*args, **kwargs)
 
     def as_p(self):
-        "Returns this form rendered as HTML <p>s."
+        """Returns this form rendered as HTML <p>s."""
         return self._html_output(
             normal_row=u'<p%(html_class_attr)s>%(label)s <span class="help-text">%(help_text)s</span> %(field)s</p>',
             error_row=u'%s',
@@ -107,7 +104,7 @@ class MultiScaleForm(QuestionFormBase):
 class ScaleForm(QuestionFormBase):
     def __init__(self, *args, **kwargs):
         super(ScaleForm, self).__init__(*args, **kwargs)
-        self.fields['choice'] = forms.ChoiceField(choices=[(i, i) for i in xrange(1, 6)],
+        self.fields['choice'] = forms.ChoiceField(choices=[(i, i) for i in range(1, 6)],
                                                   widget=CustomInlineRadioSelect,
                                                   required=self.question.required,
                                                   label=self.question.title,

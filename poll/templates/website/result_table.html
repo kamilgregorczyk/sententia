@@ -28,7 +28,7 @@
 
     <div class="inline-group stats">
         {% for question in questions %}
-            {% if question.votes and  not question.type == "TextArea" %}
+            {% if question.votes and not question.type == "TextArea" %}
                 <div class="row">
                     <div class="col-sm-12">
                         <h2>{{ question.title }}
@@ -50,7 +50,8 @@
                                                         Mediana: <strong>{{ result|median }}</strong></p>
 
                                                 </div>
-                                                <div id="{{ choice|slug }}" class="graph"
+                                                <div id="{{ question.id }}-{{ choice.id }}"
+                                                     class="graph"
                                                      data-title="{{ choice.title }}"
                                                      data-array='[["Wybór", "Wartosć"],{% for key, value in result|counter %}["{{ key }}", {{ value }}]{% if not forloop.last %}, {% endif %}{% endfor %}]'></div>
                                             </div>
@@ -68,7 +69,7 @@
                                     Dominanta: <strong>{{ question.mode }}</strong>
                                     Mediana: <strong>{{ question.median }}</strong></p>
                             </div>
-                            <div id="{{ question|slug }}" class="graph" data-title="{{ question.title }}"
+                            <div id="{{ question.id }}" class="graph" data-title="{{ question.title }}"
                                  data-array='[["Wybór", "Wartosć"],{% for key, value in question.arrayToDataTable %}["{{ key }}", {{ value }}]{% if not forloop.last %}, {% endif %}{% endfor %}]'></div>
                         </div>
                     {% endif %}
