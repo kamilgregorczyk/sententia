@@ -6,7 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.utils.safestring import mark_safe
-from nested_admin import NestedModelAdmin, NestedStackedInline
+from nested_admin.nested import NestedStackedInline, NestedModelAdmin
 from tabbed_admin import TabbedModelAdmin
 
 from poll.forms import PollAdminForm, TokenInlineForm
@@ -14,10 +14,10 @@ from poll.models import Poll, Question, Choice, Token, get_code
 
 
 class ChoiceInline(NestedStackedInline):
+    is_sortable = False
     model = Choice
     extra = 0
-    fields = ['title', 'order']
-    sortable_field_name = "order"
+    fields = ['title']
 
 
 class TokenInline(admin.TabularInline):
@@ -142,7 +142,7 @@ class PollAdmin(TabbedModelAdmin, NestedModelAdmin):
 
     def save_related(self, request, form, formsets, change):
         if "_saveasnew" in request.POST:
-            formsets.remove(filter(lambda x: x.__class__.__name__ == "TokenFormFormSet", formsets)[0])
+            formsets.remove(list(filter(lambda x: x.__class__.__name__ == "TokenFormFormSet", formsets))[0])
         return super(PollAdmin, self).save_related(request, form, formsets, change)
 
     def save_model(self, request, obj, form, change):

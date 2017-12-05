@@ -9,7 +9,7 @@ from django.db import models
 from django.db import transaction
 from typing import List, Tuple, ItemsView
 
-from poll.helpers import get_code
+from poll.helpers import get_code, zip_discard_compr
 
 
 class BaseModel(models.Model):
@@ -80,9 +80,10 @@ class Poll(BaseModel):
     def save_results(self, context, token: Token):
         form_id = uuid.uuid4()
         votes = []
+        questions = list(self.questions.all())
         for index, field in enumerate(context["formset"].cleaned_data):
             value = ', '.join(field['choice']) if isinstance(field['choice'], type([])) else field['choice']
-            votes.append(Vote(value=value, form_id=form_id, question=self.questions.all()[index], poll=self))
+            votes.append(Vote(value=value, form_id=form_id, question=questions[index], poll=self))
         with transaction.atomic():
             Vote.objects.bulk_create(votes)
             if token:
@@ -120,32 +121,14 @@ class Question(models.Model):
         verbose_name = u'Pytanie'
         verbose_name_plural = u'Pytania'
 
-    def mode(self) -> ItemsView:
-        values = self.votes.values_list('value', flat=True)
-        return Counter(values).most_common(1)[0][0]
-
-    def avg(self) -> float:
-        try:
-            values = self.votes.values_list('value', flat=True)
-            values = list(map(int, values))
-            return sum(values) / float(len(values))
-        except (ZeroDivisionError, ValueError):
-            return 0.0
-
-    def median(self) -> float:
-        values = self.votes.values_list('value', flat=True)
-        return sorted(values)[len(values) // 2]
+    def votes_list(self) -> List[str]:
+        return self.votes.values_list('value', flat=True)
 
     def multiscale_results(self) -> List[Tuple[int]]:
-        values = self.votes.values_list('value', flat=True)
-        values = map(lambda x: x.split(', '), values)
-        values = [map(int, i) for i in values]
-
-        return list(zip(*values))
-
-    def arrayToDataTable(self) -> ItemsView:
-        values = self.votes.values_list('value', flat=True)
-        return Counter(values).items()
+        all_values = self.votes.values_list('value', flat=True)
+        all_values = map(lambda x: x.split(', '), all_values)
+        all_values = [list(map(int, values)) for values in all_values]
+        return list(zip_discard_compr(*all_values))
 
 
 class Vote(models.Model):
@@ -164,14 +147,13 @@ class Vote(models.Model):
 
 
 class Choice(models.Model):
-    order = models.PositiveIntegerField(default=0)
     question_type = models.ForeignKey(Question, null=True, blank=True, related_name="choices")
     title = models.CharField(u"Wybór", max_length=255)
 
     class Meta:
         verbose_name = u'Odpowiedzi'
         verbose_name_plural = u'Odpowiedzi'
-        ordering = ['order']
+        ordering = ["id"]
 
     def __str__(self) -> str:
         return self.title

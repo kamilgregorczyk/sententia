@@ -1,8 +1,9 @@
 import locale
-from typing import List
+from typing import List, Dict
 
 import xlwt
 from django import forms
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.handlers.wsgi import WSGIRequest
 from django.core.urlresolvers import reverse
@@ -18,7 +19,7 @@ from django.views.generic.base import TemplateView
 
 from poll.forms import BaseQuestionFormset
 from poll.forms import SingleChoiceForm
-from poll.models import Poll, Question
+from poll.models import Poll, Question, Vote
 
 error_messages = {
     "missing_token": u"""Ankieta jest zabezpieczona indywidualnymi linkami, możesz ją wypełnić tylko posiadając
@@ -141,44 +142,56 @@ class BaseResults(TemplateView):
         self.table: List = None
         self.questions: List[Question] = None
 
-    def setup(self, object_id, user):
+    def setup(self, poll_id: int, user: User):
         self.poll = Poll.objects.prefetch_related('questions', 'questions__choices', 'questions__votes',
-                                                  'allowed_users', 'allowed_groups').get(id=object_id)
+                                                  'allowed_users', 'allowed_groups').get(id=poll_id)
         if not (self.poll.created_by == user
-                or user in self.poll.allowed_users.all()
+                or user.id in self.poll.allowed_users.values_list('id', flat=True)
                 or user.id in self.poll.allowed_groups.values_list('user__id', flat=True)
                 ):
             raise PermissionDenied()
         self.questions = list(self.poll.questions.all())
         self.table = self.get_results()
 
-    def get_results(self) -> List:
-        table = []
+    def get_results(self) -> List[List[str]]:
         form_ids = self.poll.votes.values_list('form_id', 'created_at').distinct('form_id')
         form_ids = sorted(form_ids, key=lambda form_id: form_id[1], reverse=True)
         all_votes = self.poll.questions.values('votes__value', 'votes__form_id', 'id')
-        for form_id in form_ids:
-            row = [timezone.localtime(form_id[1])]
-            votes = list(filter(lambda votes_values: votes_values['votes__form_id'] == form_id[0], all_votes))
+        cells_count = len(self.questions) + sum(map(lambda question: question.choices.count() - 1,
+                                                    filter(lambda question: question.type == "MultiScale",
+                                                           self.questions)))
+        table = [[' ' for cell in range(cells_count + 1)] for dummy in form_ids]
+
+        votes_dict: Dict[List[Vote]] = {}
+        for vote in all_votes:
+            key = vote['votes__form_id']
+            if key in votes_dict:
+                votes_dict[key].append(vote)
+            else:
+                votes_dict[key] = [vote]
+
+        for form_index, form_id in enumerate(form_ids):
+            table[form_index][0] = timezone.localtime(form_id[1])
+            votes = votes_dict[form_id[0]]
+            question_index = 1
             for question in self.questions:
                 try:
-                    vote = next(filter(lambda vote_values: vote_values['id'] == question.id, votes))['votes__value']
-                    if vote == '':
-                        raise IndexError
-                    if question.type == "MultiScale":
-                        for v in vote.split(', '):
-                            row.append(v)
-                    else:
-                        row.append(vote)
+                    optional_vote = list(filter(lambda vote_values: vote_values['id'] == question.id, votes))
+                    if optional_vote:
+                        vote = optional_vote[0]['votes__value']
+                        if vote == '':
+                            raise IndexError
+                        if question.type == "MultiScale":
+                            multiscale_choices = vote.split(', ')
+                            for choice_index, multiscale_choice in enumerate(multiscale_choices):
+                                table[form_index][question_index] = multiscale_choice
+                                question_index += 1
+                            question_index -= 1
+                        else:
+                            table[form_index][question_index] = vote
                 except IndexError:
-                    if question.type == "MultiScale":
-                        for v in question.choices.all():
-                            row.append(' ')
-                    else:
-                        row.append(' ')
-
-            table.append(row)
-
+                    pass
+                question_index += 1
         return table
 
     def dispatch(self, request, *args, **kwargs):

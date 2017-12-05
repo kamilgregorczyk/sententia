@@ -47,6 +47,10 @@ canvas {
     height: 250px;
 }
 
+table tr:hover {
+    background: #f6f6f6;
+}
+
 .reload {
     position: relative;
 }
@@ -63,9 +67,8 @@ canvas {
 }
 
 .btn-excel {
-  background: #227346;
+    background: #227346;
 }
-
 
 .relative {
     position: relative;
