@@ -1,16 +1,31 @@
 version: '3'
 
+# Run `docker volume create pgdata` before!
+
 services:
   db:
     image: postgres
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
   web:
     build: .
-    command: bash -c "python3 manage.py migrate
-                      && python3 manage.py testuser --username admin --password admin --email admin@gmail.com --no-input
-                      && python3 manage.py runserver 0.0.0.0:8000"
+    command: bash -c "./wait-for-postgres.sh db
+                      && python3 manage.py migrate
+                      && python3 manage.py collectstatic --noinput
+                      && python3 manage.py adminuser --username admin --email admin@gmail.com --no-input
+                      && /usr/local/bin/gunicorn sententia.wsgi:application -w 2 -b :8000"
     volumes:
       - .:/code
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     depends_on:
       - db
+
+  nginx:
+    build: ./nginx/.
+    ports:
+      - "80:80"
+    volumes:
+      - .:/code
+    depends_on:
+      - web
