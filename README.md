@@ -4,10 +4,8 @@
 It's a project for my Bachelor's degree so please do request any new features (you can report issues tho). Project is alive on https://sententiaup.pl
 
 ### Mandatory system requirements
-* PostgreSQL 9.6
-* Python 2.7 (Python 3 support is comming)
-* git
-* Optional: virtualenv
+* Docker
+* Docker compose
 
 ### Requirements
 * [django 1.9](https://docs.djangoproject.com/en/1.9/)
@@ -19,12 +17,6 @@ It's a project for my Bachelor's degree so please do request any new features (y
 * [xlwt](http://xlwt.readthedocs.org/en/latest/)
 
 ### Manual
-1. Clone repo to your desired directory: ```git clone https://github.com/kamilgregorczyk/sententia.git && cd sententia```
-2. Create a virtualenv for the project ```mkvirtualenv sententia```
-3. Install the requirements ```pip install -r requirements.txt```
-4. Update your database settings in a local settings file ```nano sententia/local.py```
-5. Export path to local settings file ```export DJANG_SETTINGS_MODULE=sententia.local```
-6. Create tables in your database (migrations) ```./manage.py migrate```
-7. Create an account ```./manage.py createsuperuser```
-8. Start a server on http://localhost:8000 ```./manage.py runserver```
-
+1. Create docker volume ```docker volume create pgdata```
+2. Run all services ```docker-compose up```
+3. Go to http://localhost (if you see your own http server then change ngxin port)
