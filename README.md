@@ -1,7 +1,7 @@
 # Sententia
 **Sententia - fully-featured voting app in Django.** 
 
-It's a project for my Bachelor's degree so please do request any new features (you can report issues tho). Project is alive on https://sententiaup.pl
+It's a project for my Bachelor's degree so please do request any new features (you can report issues tho).
 
 ### Mandatory system requirements
 * Docker
